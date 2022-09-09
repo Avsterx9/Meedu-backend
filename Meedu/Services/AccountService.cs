@@ -1,8 +1,12 @@
 ﻿using Meedu.Entities;
+using Meedu.Exceptions;
 using Meedu.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 
 namespace Meedu.Services
 {
@@ -17,12 +21,14 @@ namespace Meedu.Services
         private readonly MeeduDbContext dbContext;
         private readonly IPasswordHasher<User> passwordHasher;
         private readonly ILogger<AccountService> logger;
+        private readonly AuthSettings authSettings;
 
-        public AccountService(MeeduDbContext dbContext, IPasswordHasher<User> passwordHasher, ILogger<AccountService> logger)
+        public AccountService(MeeduDbContext dbContext, IPasswordHasher<User> passwordHasher, ILogger<AccountService> logger, AuthSettings authSettings)
         {
             this.dbContext = dbContext;
             this.passwordHasher = passwordHasher;
             this.logger = logger;
+            this.authSettings = authSettings;
         }
 
         public void RegisterUser(RegisterUserDto dto)
@@ -51,17 +57,13 @@ namespace Meedu.Services
 
             if (user is null)
             {
-                Console.WriteLine("IMPLEMENT");
+                throw new BadRequestException("Invalid username or password");
             }
-            //if (!user)
-            //{
-            //    throw new BadRequestException("Invalid username or password");
-            //}
 
             var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password);
             if (result == PasswordVerificationResult.Failed)
             {
-                //    throw new BadRequestException("Invalid username or password");
+                throw new BadRequestException("Invalid username or password");
             }
 
             var claims = new List<Claim>()
@@ -69,9 +71,21 @@ namespace Meedu.Services
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
                 new Claim(ClaimTypes.Name, $"{user.Role.Name}"),
+                new Claim("DateOfBirth", user.DateOfBirth.Value.ToString("dd-MM-yyyy"))
             };
 
-            return String.Empty;
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authSettings.JwtKey));
+            var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var expires = DateTime.Now.AddDays(authSettings.JwtExpireDays);
+
+            var token = new JwtSecurityToken(authSettings.JwtIssuer,
+                authSettings.JwtIssuer,
+                claims,
+                expires: expires,
+                signingCredentials: cred);
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            return tokenHandler.WriteToken(token);
         }
     }
 }

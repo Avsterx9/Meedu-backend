@@ -27,6 +27,8 @@ var authSettings = new AuthSettings();
 
 builder.Configuration.GetSection("Authentication").Bind(authSettings);
 
+builder.Services.AddSingleton(authSettings);
+
 builder.Services.AddAuthentication(x =>
 {
     x.DefaultAuthenticateScheme = "Bearer";
