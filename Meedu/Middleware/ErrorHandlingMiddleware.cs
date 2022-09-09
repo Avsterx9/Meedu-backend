@@ -1,4 +1,6 @@
-﻿namespace Meedu.Middleware
+﻿using Meedu.Exceptions;
+
+namespace Meedu.Middleware
 {
     public class ErrorHandlingMiddleware : IMiddleware
     {
@@ -14,6 +16,11 @@
             try
             {
                 await next.Invoke(context);
+            }
+            catch(NotFoundException notFoundException)
+            {
+                context.Response.StatusCode = 404;
+                await context.Response.WriteAsync(notFoundException.Message);
             }
             catch(Exception e)
             {
