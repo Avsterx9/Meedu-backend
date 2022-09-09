@@ -26,6 +26,7 @@ namespace Meedu.Controllers
         public ActionResult Login([FromBody] LoginUserDto loginDto)
         {
             string token = accountService.GenerateJwtToken(loginDto);
+            return null;
         }
     }
 }

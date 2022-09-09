@@ -16,11 +16,13 @@ namespace Meedu.Services
     {
         private readonly MeeduDbContext dbContext;
         private readonly IPasswordHasher<User> passwordHasher;
+        private readonly ILogger<AccountService> logger;
 
-        public AccountService(MeeduDbContext dbContext, IPasswordHasher<User> passwordHasher)
+        public AccountService(MeeduDbContext dbContext, IPasswordHasher<User> passwordHasher, ILogger<AccountService> logger)
         {
             this.dbContext = dbContext;
             this.passwordHasher = passwordHasher;
+            this.logger = logger;
         }
 
         public void RegisterUser(RegisterUserDto dto)
@@ -47,7 +49,7 @@ namespace Meedu.Services
                 .Include(x => x.Role)
                 .FirstOrDefault(x => x.Email == loginDto.Email);
 
-            if(user is null)
+            if (user is null)
             {
                 Console.WriteLine("IMPLEMENT");
             }
@@ -57,7 +59,7 @@ namespace Meedu.Services
             //}
 
             var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password);
-            if(result == PasswordVerificationResult.Failed)
+            if (result == PasswordVerificationResult.Failed)
             {
                 //    throw new BadRequestException("Invalid username or password");
             }
@@ -68,6 +70,7 @@ namespace Meedu.Services
                 new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
                 new Claim(ClaimTypes.Name, $"{user.Role.Name}"),
             };
+
             return String.Empty;
         }
     }
