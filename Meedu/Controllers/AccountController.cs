@@ -1,5 +1,6 @@
 ﻿using Meedu.Models;
 using Meedu.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Meedu.Controllers
@@ -27,6 +28,13 @@ namespace Meedu.Controllers
         {
             string token = accountService.GenerateJwtToken(loginDto);
             return Ok(token);
+        }
+
+        [HttpGet("getUserInfo")]
+        [Authorize]
+        public async Task<ActionResult> GetUserInfo()
+        {
+            return Ok(await accountService.GetUserInfo());
         }
     }
 }

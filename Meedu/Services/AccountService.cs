@@ -14,6 +14,7 @@ namespace Meedu.Services
     {
         void RegisterUser(RegisterUserDto dto);
         string GenerateJwtToken(LoginUserDto loginDto);
+        Task<UserInfoDto> GetUserInfo();
     }
 
     public class AccountService : IAccountService
@@ -22,13 +23,19 @@ namespace Meedu.Services
         private readonly IPasswordHasher<User> passwordHasher;
         private readonly ILogger<AccountService> logger;
         private readonly AuthSettings authSettings;
+        private readonly IUserContextService userContextService;
 
-        public AccountService(MeeduDbContext dbContext, IPasswordHasher<User> passwordHasher, ILogger<AccountService> logger, AuthSettings authSettings)
+        public AccountService(MeeduDbContext dbContext, 
+            IPasswordHasher<User> passwordHasher, 
+            ILogger<AccountService> logger, 
+            AuthSettings authSettings, 
+            IUserContextService userContextService)
         {
             this.dbContext = dbContext;
             this.passwordHasher = passwordHasher;
             this.logger = logger;
             this.authSettings = authSettings;
+            this.userContextService = userContextService;
         }
 
         public void RegisterUser(RegisterUserDto dto)
@@ -86,6 +93,27 @@ namespace Meedu.Services
 
             var tokenHandler = new JwtSecurityTokenHandler();
             return tokenHandler.WriteToken(token);
+        }
+
+        public async Task<UserInfoDto> GetUserInfo()
+        {
+            var userId = userContextService.GetUserId;
+
+            if(userId is null)
+            {
+                throw new BadRequestException("User does not exist");
+            }
+
+            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            return new UserInfoDto()
+            {
+                Email = user.Email,
+                FirstName = user.FirstName,
+                DateOfBirth = user.DateOfBirth,
+                LastName = user.LastName,
+                RoleId = user.RoleId
+            };
         }
     }
 }
