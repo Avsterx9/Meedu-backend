@@ -106,8 +106,14 @@ namespace Meedu.Services
 
             var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
+            if (userId is null)
+            {
+                throw new BadRequestException("User does not exist");
+            }
+
             return new UserInfoDto()
             {
+                Id = user.Id,
                 Email = user.Email,
                 FirstName = user.FirstName,
                 DateOfBirth = user.DateOfBirth,

@@ -6,6 +6,8 @@ namespace Meedu.Entities
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
+        public DbSet<PrivateLessonOffer> PrivateLessonOffers { get; set; }
+        public DbSet<Subject> Subjects { get; set; }
 
         public MeeduDbContext(DbContextOptions<MeeduDbContext> options) : base(options)
         {
