@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using Meedu.Models;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Meedu.Entities
 {

@@ -46,8 +46,9 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-// Add services to the container.
+// SERVICES
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IPrivateLessonService, PrivateLessonService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 // VALIDATORS
