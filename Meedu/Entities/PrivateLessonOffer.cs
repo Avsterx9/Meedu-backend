@@ -6,6 +6,7 @@ namespace Meedu.Entities
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
+        public string LessonTitle { get; set; }
         public string City { get; set; }
         public decimal Price { get; set; }
         public bool OnlineLessonsPossible { get; set; }
