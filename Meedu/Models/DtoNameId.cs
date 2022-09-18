@@ -1,6 +1,6 @@
 ﻿namespace Meedu.Models
 {
-    public class SubjectDto
+    public class DtoNameId
     {
         public string Id { get; set; }
         public string Name { get; set; }

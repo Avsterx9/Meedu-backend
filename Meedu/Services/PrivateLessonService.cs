@@ -7,6 +7,7 @@ namespace Meedu.Services
     public interface IPrivateLessonService
     {
         Task AddPrivateLesson(PrivateLessonOfferDto dto);
+        Task<List<PrivateLessonOfferDto>> GetAllLessonOffers();
     }
 
     public class PrivateLessonService : IPrivateLessonService
@@ -54,6 +55,41 @@ namespace Meedu.Services
                 dbContext.PrivateLessonOffers.Add(newLesson);
             }
             await dbContext.SaveChangesAsync();
+        }
+
+        public async Task<List<PrivateLessonOfferDto>> GetAllLessonOffers()
+        {
+            var lessonOffers = await dbContext.PrivateLessonOffers
+                .Include(s => s.Subject)
+                .Include(s => s.CreatedBy)
+                .ToListAsync();
+
+            var lessonOfferDtoList = lessonOffers.Select(o => CreateLessonOfferDto(o)).ToList();
+            return lessonOfferDtoList;
+        }
+
+        private PrivateLessonOfferDto CreateLessonOfferDto(PrivateLessonOffer offer)
+        {
+            return new PrivateLessonOfferDto()
+            {
+                City = offer.City,
+                Description = offer.Description,
+                isOnline = offer.OnlineLessonsPossible,
+                LessonTitle = offer.LessonTitle,
+                Place = offer.Place,
+                Price = offer.Price,
+                Subject = new DtoNameId()
+                { 
+                    Id = offer.Subject.Id.ToString(),
+                    Name = offer.Subject.Name
+                },
+                TeachingRange = offer.TeachingRange.Value,
+                User = new DtoNameId() 
+                { 
+                    Id = offer.CreatedBy.Id.ToString(),
+                    Name = offer.CreatedBy.LastName
+                }
+            };
         }
     }
 }

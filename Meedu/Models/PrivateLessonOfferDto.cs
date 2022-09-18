@@ -9,8 +9,9 @@ namespace Meedu.Models
         public decimal Price { get; set; }
         public bool isOnline { get; set; }
         public Place Place { get; set; }
-        public SubjectDto Subject { get; set; }
+        public DtoNameId Subject { get; set; }
         public string Description { get; set; }
         public TeachingRange TeachingRange { get; set; }
+        public DtoNameId User { get; set; }
     }
 }

@@ -23,5 +23,11 @@ namespace Meedu.Controllers
             await privateLessonService.AddPrivateLesson(dto);
             return Ok();
         }
+
+        [HttpGet("list")]
+        public async Task<ActionResult> GetAllLessonOffers()
+        {
+            return Ok(await privateLessonService.GetAllLessonOffers());
+        }
     }
 }
