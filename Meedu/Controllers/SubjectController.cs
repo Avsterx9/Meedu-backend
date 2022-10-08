@@ -1,4 +1,5 @@
 ﻿using Meedu.Entities;
+using Meedu.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Meedu.Controllers
@@ -7,12 +8,16 @@ namespace Meedu.Controllers
     [ApiController]
     public class SubjectController : ControllerBase
     {
-        //private readonly ISubjectService subjectService;
+        private readonly ISubjectService _subjectService;
 
-        [HttpGet("list")]
-        public async Task<ActionResult> AddPrivateLesson()
+        public SubjectController(ISubjectService _subjectService)
         {
-            return Ok();
+            this._subjectService = _subjectService;
+        }
+        [HttpGet("list")]
+        public async Task<ActionResult> GetAll()
+        {
+            return Ok(await _subjectService.GetAll());
         }
     }
 }

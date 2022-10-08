@@ -50,6 +50,7 @@ builder.Services.AddAuthentication(x =>
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IPrivateLessonService, PrivateLessonService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<ISubjectService, SubjectService>();
 
 // VALIDATORS
 builder.Services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
