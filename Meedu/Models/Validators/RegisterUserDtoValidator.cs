@@ -24,7 +24,7 @@ namespace Meedu.Models.Validators
 
                     if (emailTaken)
                     {
-                        context.AddFailure("Email", "Email is taken");
+                        context.AddFailure("Email", "EmailIsTaken");
                     }
                 });
         }

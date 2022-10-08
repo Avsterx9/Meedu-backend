@@ -12,6 +12,6 @@ namespace Meedu.Models
         public DtoNameId Subject { get; set; }
         public string Description { get; set; }
         public TeachingRange TeachingRange { get; set; }
-        public DtoNameId User { get; set; }
+        public DtoNameLastnameId User { get; set; }
     }
 }

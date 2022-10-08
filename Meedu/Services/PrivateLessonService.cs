@@ -84,10 +84,11 @@ namespace Meedu.Services
                     Name = offer.Subject.Name
                 },
                 TeachingRange = offer.TeachingRange.Value,
-                User = new DtoNameId() 
+                User = new DtoNameLastnameId() 
                 { 
                     Id = offer.CreatedBy.Id.ToString(),
-                    Name = offer.CreatedBy.LastName
+                    FirstName = offer.CreatedBy.FirstName,
+                    LastName = offer.CreatedBy.LastName,
                 }
             };
         }
