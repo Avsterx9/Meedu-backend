@@ -7,6 +7,7 @@ namespace Meedu.Services
     public interface ISubjectService
     {
         Task<List<SubjectDto>> GetAll();
+        Task AddSubject(String name);
     }
 
     public class SubjectService : ISubjectService
@@ -21,6 +22,16 @@ namespace Meedu.Services
         {
             var subjects = await _dbContext.Subjects.ToListAsync();
             return subjects.Select(s => new SubjectDto() { Id = s.Id.ToString(), Name = s.Name }).ToList();
+        }
+
+        public async Task AddSubject(String name)
+        {
+            var exists = await _dbContext.Subjects.FirstOrDefaultAsync(s => s.Name == name || s.Name == name.ToLower());  
+
+            if(exists == null)
+                throw new BadHttpRequestException("SubjectAlreadyExists");
+            
+            await _dbContext.Subjects.AddAsync(exists);
         }
     }
 }

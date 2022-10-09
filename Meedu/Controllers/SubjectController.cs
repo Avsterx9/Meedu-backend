@@ -1,4 +1,5 @@
 ﻿using Meedu.Entities;
+using Meedu.Models;
 using Meedu.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,13 @@ namespace Meedu.Controllers
         public async Task<ActionResult> GetAll()
         {
             return Ok(await _subjectService.GetAll());
+        }
+
+        [HttpPost("add")]
+        public async Task<ActionResult> Add([FromBody] String name)
+        {
+            await _subjectService.AddSubject(name);
+            return Ok();
         }
     }
 }
