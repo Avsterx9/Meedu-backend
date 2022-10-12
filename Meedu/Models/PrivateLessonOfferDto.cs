@@ -4,6 +4,7 @@ namespace Meedu.Models
 {
     public class PrivateLessonOfferDto
     {
+        public string? Id { get; set; }
         public string LessonTitle { get; set; }
         public string City { get; set; }
         public decimal Price { get; set; }

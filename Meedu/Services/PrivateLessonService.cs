@@ -1,4 +1,5 @@
 ﻿using Meedu.Entities;
+using Meedu.Exceptions;
 using Meedu.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,7 @@ namespace Meedu.Services
         Task AddPrivateLesson(PrivateLessonOfferDto dto);
         Task<List<PrivateLessonOfferDto>> GetAllLessonOffers();
         Task<List<PrivateLessonOfferDto>> GetLessonOffersByUser();
+        Task DeleteLessonOffer(string id);
     }
 
     public class PrivateLessonService : IPrivateLessonService
@@ -85,10 +87,23 @@ namespace Meedu.Services
             return userOfferDtos;
         }
 
+        public async Task DeleteLessonOffer(string id)
+        {
+            var lessonOffer = await dbContext.PrivateLessonOffers
+                .FirstOrDefaultAsync(o => o.Id == new Guid(id));
+
+            if (lessonOffer == null)
+                throw new BadRequestException("OfferNotFound");
+
+            dbContext.PrivateLessonOffers.Remove(lessonOffer);
+            await dbContext.SaveChangesAsync();
+        }
+
         private PrivateLessonOfferDto CreateLessonOfferDto(PrivateLessonOffer offer)
         {
             return new PrivateLessonOfferDto()
             {
+                Id = offer.Id.ToString(),
                 City = offer.City,
                 Description = offer.Description,
                 isOnline = offer.OnlineLessonsPossible,

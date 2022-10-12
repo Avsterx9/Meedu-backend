@@ -31,9 +31,18 @@ namespace Meedu.Controllers
         }
 
         [HttpGet("getByUser")]
+        [Authorize]
         public async Task<ActionResult> GetLessonOffersByUser()
         {
             return Ok(await privateLessonService.GetLessonOffersByUser());
+        }
+
+        [HttpDelete("delete")]
+        [Authorize]
+        public async Task<ActionResult> DeleteLessonOffer(string id)
+        {
+            await privateLessonService.DeleteLessonOffer(id);
+            return Ok();
         }
     }
 }
