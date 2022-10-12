@@ -28,7 +28,7 @@ namespace Meedu.Services
         {
             var exists = await _dbContext.Subjects.FirstOrDefaultAsync(s => s.Name == name || s.Name == name.ToLower());  
 
-            if(exists == null)
+            if(exists != null)
                 throw new BadHttpRequestException("SubjectAlreadyExists");
             
             await _dbContext.Subjects.AddAsync(exists);

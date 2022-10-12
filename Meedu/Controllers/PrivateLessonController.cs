@@ -29,5 +29,11 @@ namespace Meedu.Controllers
         {
             return Ok(await privateLessonService.GetAllLessonOffers());
         }
+
+        [HttpGet("getByUser")]
+        public async Task<ActionResult> GetLessonOffersByUser()
+        {
+            return Ok(await privateLessonService.GetLessonOffersByUser());
+        }
     }
 }
