@@ -20,29 +20,36 @@ namespace Meedu.Controllers
         [Authorize]
         public async Task<ActionResult> AddPrivateLesson([FromBody] PrivateLessonOfferDto dto)
         {
-            await privateLessonService.AddPrivateLesson(dto);
+            await privateLessonService.AddPrivateLessonAsync(dto);
             return Ok();
         }
 
         [HttpGet("list")]
         public async Task<ActionResult> GetAllLessonOffers()
         {
-            return Ok(await privateLessonService.GetAllLessonOffers());
+            return Ok(await privateLessonService.GetAllLessonOffersAsync());
         }
 
         [HttpGet("getByUser")]
         [Authorize]
         public async Task<ActionResult> GetLessonOffersByUser()
         {
-            return Ok(await privateLessonService.GetLessonOffersByUser());
+            return Ok(await privateLessonService.GetLessonOffersByUserAsync());
         }
 
         [HttpDelete("delete")]
         [Authorize]
         public async Task<ActionResult> DeleteLessonOffer(string id)
         {
-            await privateLessonService.DeleteLessonOffer(id);
+            await privateLessonService.DeleteLessonOfferAsync(id);
             return Ok();
+        }
+
+        [HttpGet("getById")]
+        [Authorize]
+        public async Task<ActionResult> GetById(string id)
+        {
+            return Ok(await privateLessonService.GetByIdAsync(id));
         }
     }
 }

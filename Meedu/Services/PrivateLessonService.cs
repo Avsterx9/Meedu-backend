@@ -7,10 +7,11 @@ namespace Meedu.Services
 {
     public interface IPrivateLessonService
     {
-        Task AddPrivateLesson(PrivateLessonOfferDto dto);
-        Task<List<PrivateLessonOfferDto>> GetAllLessonOffers();
-        Task<List<PrivateLessonOfferDto>> GetLessonOffersByUser();
-        Task DeleteLessonOffer(string id);
+        Task AddPrivateLessonAsync(PrivateLessonOfferDto dto);
+        Task<List<PrivateLessonOfferDto>> GetAllLessonOffersAsync();
+        Task<List<PrivateLessonOfferDto>> GetLessonOffersByUserAsync();
+        Task DeleteLessonOfferAsync(string id);
+        Task<PrivateLessonOfferDto> GetByIdAsync(string id);
     }
 
     public class PrivateLessonService : IPrivateLessonService
@@ -26,7 +27,7 @@ namespace Meedu.Services
             this.userContextService = userContextService;
         }
 
-        public async Task AddPrivateLesson(PrivateLessonOfferDto dto)
+        public async Task AddPrivateLessonAsync(PrivateLessonOfferDto dto)
         {
             var userID = userContextService.GetUserId;
             var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userID);
@@ -60,7 +61,7 @@ namespace Meedu.Services
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task<List<PrivateLessonOfferDto>> GetAllLessonOffers()
+        public async Task<List<PrivateLessonOfferDto>> GetAllLessonOffersAsync()
         {
             var lessonOffers = await dbContext.PrivateLessonOffers
                 .Include(s => s.Subject)
@@ -71,7 +72,7 @@ namespace Meedu.Services
             return lessonOfferDtoList;
         }
 
-        public async Task<List<PrivateLessonOfferDto>> GetLessonOffersByUser()
+        public async Task<List<PrivateLessonOfferDto>> GetLessonOffersByUserAsync()
         {
             var userID = userContextService.GetUserId;
             var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userID);
@@ -87,7 +88,7 @@ namespace Meedu.Services
             return userOfferDtos;
         }
 
-        public async Task DeleteLessonOffer(string id)
+        public async Task DeleteLessonOfferAsync(string id)
         {
             var lessonOffer = await dbContext.PrivateLessonOffers
                 .FirstOrDefaultAsync(o => o.Id == new Guid(id));
@@ -97,6 +98,21 @@ namespace Meedu.Services
 
             dbContext.PrivateLessonOffers.Remove(lessonOffer);
             await dbContext.SaveChangesAsync();
+        }
+
+
+        public async Task<PrivateLessonOfferDto> GetByIdAsync(string id)
+        {
+            var lesson = await dbContext.PrivateLessonOffers
+                .Include(x => x.CreatedBy)
+                .Include(x => x.Subject)
+                .FirstOrDefaultAsync(o => o.Id == new Guid(id));
+
+            if (lesson == null)
+                throw new BadRequestException("LessonOfferNotFound");
+
+            var dto = CreateLessonOfferDto(lesson);
+            return dto;
         }
 
         private PrivateLessonOfferDto CreateLessonOfferDto(PrivateLessonOffer offer)
