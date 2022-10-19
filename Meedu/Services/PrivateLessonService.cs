@@ -12,6 +12,7 @@ namespace Meedu.Services
         Task<List<PrivateLessonOfferDto>> GetLessonOffersByUserAsync();
         Task DeleteLessonOfferAsync(string id);
         Task<PrivateLessonOfferDto> GetByIdAsync(string id);
+        Task UpdateLessonOffer(PrivateLessonOfferDto dto);
     }
 
     public class PrivateLessonService : IPrivateLessonService
@@ -113,6 +114,36 @@ namespace Meedu.Services
 
             var dto = CreateLessonOfferDto(lesson);
             return dto;
+        }
+
+        public async Task UpdateLessonOffer(PrivateLessonOfferDto dto)
+        {
+            var offerToEdit = await dbContext.PrivateLessonOffers.FirstOrDefaultAsync(o => o.Id == new Guid(dto.Id));
+
+            if(offerToEdit == null)
+                throw new BadRequestException("LessonOfferNotFound");
+
+            var subject = await dbContext.Subjects.FirstOrDefaultAsync(s => s.Name.Contains(dto.Subject.Name));
+
+            if (subject == null)
+            {
+                subject = new Subject()
+                {
+                    Name = dto.Subject.Name
+                };
+                await dbContext.Subjects.AddAsync(subject);
+            }
+
+            offerToEdit.LessonTitle = dto.LessonTitle;
+            offerToEdit.Price = dto.Price;
+            offerToEdit.City = dto.City;
+            offerToEdit.OnlineLessonsPossible = dto.isOnline;
+            offerToEdit.Description = dto.Description;
+            offerToEdit.Subject = subject;
+            offerToEdit.Place = dto.Place;
+            offerToEdit.TeachingRange = dto.TeachingRange;
+
+            await dbContext.SaveChangesAsync();
         }
 
         private PrivateLessonOfferDto CreateLessonOfferDto(PrivateLessonOffer offer)

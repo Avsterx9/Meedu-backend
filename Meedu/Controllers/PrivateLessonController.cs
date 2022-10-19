@@ -51,5 +51,13 @@ namespace Meedu.Controllers
         {
             return Ok(await privateLessonService.GetByIdAsync(id));
         }
+
+        [HttpPut("update")]
+        [Authorize]
+        public async Task<ActionResult> GetById([FromBody] PrivateLessonOfferDto dto)
+        {
+            await privateLessonService.UpdateLessonOffer(dto);
+            return Ok();
+        }
     }
 }
