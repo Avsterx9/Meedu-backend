@@ -59,5 +59,11 @@ namespace Meedu.Controllers
             await privateLessonService.UpdateLessonOffer(dto);
             return Ok();
         }
+
+        [HttpGet("search")]
+        public async Task<ActionResult> SimpleSearchByName(string? searchValue = "")
+        {
+            return Ok(await privateLessonService.SimpleSearchByNameAsync(searchValue));
+        }
     }
 }

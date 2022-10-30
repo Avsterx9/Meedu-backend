@@ -13,6 +13,7 @@ namespace Meedu.Services
         Task DeleteLessonOfferAsync(string id);
         Task<PrivateLessonOfferDto> GetByIdAsync(string id);
         Task UpdateLessonOffer(PrivateLessonOfferDto dto);
+        Task<List<PrivateLessonOfferDto>> SimpleSearchByNameAsync(string searchValue);
     }
 
     public class PrivateLessonService : IPrivateLessonService
@@ -144,6 +145,20 @@ namespace Meedu.Services
             offerToEdit.TeachingRange = dto.TeachingRange;
 
             await dbContext.SaveChangesAsync();
+        }
+
+        public async Task<List<PrivateLessonOfferDto>> SimpleSearchByNameAsync(string searchValue)
+        {
+            var lessons = await dbContext.PrivateLessonOffers
+                .Include(o => o.CreatedBy)
+                .Include(o => o.Subject)
+                .ToListAsync();
+
+            if (!String.IsNullOrEmpty(searchValue))
+                lessons = lessons.Where(o => o.LessonTitle.ToLower().Contains(searchValue.ToLower())).ToList();
+
+            var result = lessons.Select(o => CreateLessonOfferDto(o)).ToList();
+            return result;
         }
 
         private PrivateLessonOfferDto CreateLessonOfferDto(PrivateLessonOffer offer)
