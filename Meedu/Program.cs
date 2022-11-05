@@ -20,7 +20,7 @@ var connectionString = builder.Configuration.GetConnectionString("MeeduConnectio
 builder.Services.AddDbContext<MeeduDbContext>(x => x.UseSqlServer(connectionString));
 
 builder.Services.AddControllers().AddFluentValidation();
-
+//builder.Services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters(); ;
 // Authentication
 
 var authSettings = new AuthSettings();

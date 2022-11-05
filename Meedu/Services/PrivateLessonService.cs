@@ -50,7 +50,7 @@ namespace Meedu.Services
                 {
                     City = dto.City,
                     Description = dto.Description,
-                    LessonTitle = dto.LessonTitle,
+                    LessonTitle = dto.LessonTitle != null ? dto.LessonTitle : String.Empty,
                     OnlineLessonsPossible = dto.isOnline,
                     Place = dto.Place,
                     Price = dto.Price,
@@ -120,6 +120,9 @@ namespace Meedu.Services
 
         public async Task UpdateLessonOffer(PrivateLessonOfferDto dto)
         {
+            if(dto.Id == null)
+                throw new ArgumentNullException("OfferIdIsNull");
+
             var offerToEdit = await dbContext.PrivateLessonOffers.FirstOrDefaultAsync(o => o.Id == new Guid(dto.Id));
 
             if(offerToEdit == null)
@@ -136,7 +139,7 @@ namespace Meedu.Services
                 await dbContext.Subjects.AddAsync(subject);
             }
 
-            offerToEdit.LessonTitle = dto.LessonTitle;
+            offerToEdit.LessonTitle = dto.LessonTitle != null ? dto.LessonTitle : String.Empty;
             offerToEdit.Price = dto.Price;
             offerToEdit.City = dto.City;
             offerToEdit.OnlineLessonsPossible = dto.isOnline;
@@ -201,17 +204,17 @@ namespace Meedu.Services
             {
                 Id = offer.Id.ToString(),
                 City = offer.City,
-                Description = offer.Description,
+                Description = offer.Description != null ? offer.Description : "",
                 isOnline = offer.OnlineLessonsPossible,
                 LessonTitle = offer.LessonTitle,
                 Place = offer.Place,
                 Price = offer.Price,
                 Subject = new DtoNameId()
-                { 
+                {
                     Id = offer.Subject.Id.ToString(),
                     Name = offer.Subject.Name
                 },
-                TeachingRange = offer.TeachingRange.Value,
+                TeachingRange = offer.TeachingRange != null ? offer.TeachingRange.Value : TeachingRange.Other,
                 User = new DtoNameLastnameId() 
                 { 
                     Id = offer.CreatedBy.Id.ToString(),

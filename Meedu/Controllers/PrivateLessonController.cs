@@ -63,6 +63,9 @@ namespace Meedu.Controllers
         [HttpGet("search")]
         public async Task<ActionResult> SimpleSearchByName(string? searchValue = "")
         {
+            if (searchValue == null)
+                searchValue = String.Empty;
+
             return Ok(await privateLessonService.SimpleSearchByNameAsync(searchValue));
         }
 
