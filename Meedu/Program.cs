@@ -19,8 +19,8 @@ builder.Host.UseNLog();
 var connectionString = builder.Configuration.GetConnectionString("MeeduConnectionString");
 builder.Services.AddDbContext<MeeduDbContext>(x => x.UseSqlServer(connectionString));
 
-builder.Services.AddControllers().AddFluentValidation();
-
+//builder.Services.AddControllers().AddFluentValidation(); <- old declaration
+builder.Services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters(); ;
 // Authentication
 
 var authSettings = new AuthSettings();
