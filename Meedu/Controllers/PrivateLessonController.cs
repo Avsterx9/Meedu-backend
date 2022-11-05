@@ -65,5 +65,12 @@ namespace Meedu.Controllers
         {
             return Ok(await privateLessonService.SimpleSearchByNameAsync(searchValue));
         }
+
+        [HttpPost("advancedSearch")]
+        public async Task<ActionResult> AdvancedSearch(LessonOfferAdvancedSearchDto dto)
+        {
+            // return Ok(await privateLessonService.SimpleSearchByNameAsync(searchValue));
+            return Ok(await privateLessonService.AdvancedSearch(dto));
+        }
     }
 }

@@ -14,6 +14,7 @@ namespace Meedu.Services
         Task<PrivateLessonOfferDto> GetByIdAsync(string id);
         Task UpdateLessonOffer(PrivateLessonOfferDto dto);
         Task<List<PrivateLessonOfferDto>> SimpleSearchByNameAsync(string searchValue);
+        Task<List<PrivateLessonOfferDto>> AdvancedSearch(LessonOfferAdvancedSearchDto dto);
     }
 
     public class PrivateLessonService : IPrivateLessonService
@@ -157,8 +158,41 @@ namespace Meedu.Services
             if (!String.IsNullOrEmpty(searchValue))
                 lessons = lessons.Where(o => o.LessonTitle.ToLower().Contains(searchValue.ToLower())).ToList();
 
-            var result = lessons.Select(o => CreateLessonOfferDto(o)).ToList();
-            return result;
+            return lessons.Select(o => CreateLessonOfferDto(o)).ToList();
+        }
+
+        public async Task<List<PrivateLessonOfferDto>> AdvancedSearch(LessonOfferAdvancedSearchDto dto)
+        {
+            var lessons = await dbContext.PrivateLessonOffers
+                .Include(o => o.CreatedBy)
+                .Include(o => o.Subject)
+                .ToListAsync();
+
+            if (!String.IsNullOrEmpty(dto.Subject))
+                lessons = lessons.Where(o => o.Subject.Name.Equals(dto.Subject)).ToList();
+
+            if (!String.IsNullOrEmpty(dto.LastName))
+                lessons = lessons.Where(o => o.CreatedBy.LastName.Equals(dto.LastName)).ToList();
+
+            if (!String.IsNullOrEmpty(dto.FirstName))
+                lessons = lessons.Where(o => o.CreatedBy.FirstName.Equals(dto.FirstName)).ToList();
+
+            if (!String.IsNullOrEmpty(dto.City))
+                lessons = lessons.Where(o => o.City.Equals(dto.City)).ToList();
+
+            if(dto.TeachingRange != null)
+                lessons = lessons.Where(o => o.TeachingRange == dto.TeachingRange).ToList();
+
+            if(dto.IsOnline != null)
+                lessons = lessons.Where(o => o.OnlineLessonsPossible == dto.IsOnline).ToList();
+
+            if(dto.PriceFrom != null)
+                lessons = lessons.Where(o => o.Price > dto.PriceFrom).ToList();
+
+            if (dto.PriceTo != null)
+                lessons = lessons.Where(o => o.Price < dto.PriceTo).ToList();
+
+            return lessons.Select(o => CreateLessonOfferDto(o)).ToList();
         }
 
         private PrivateLessonOfferDto CreateLessonOfferDto(PrivateLessonOffer offer)
