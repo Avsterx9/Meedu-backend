@@ -8,6 +8,7 @@ namespace Meedu.Services
     public interface IScheduleService
     {
         Task AddScheduleAsync(ScheduleDto dto);
+        Task<ScheduleDto> GetSubjectByUserAndSubject(string subjectId, string userId);
     }
 
     public class ScheduleService : IScheduleService
@@ -62,6 +63,19 @@ namespace Meedu.Services
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task<ScheduleDto> GetSubjectByUserAndSubject(string subjectId, string userId)
+        {
+            var schedule = await _dbContext.DaySchedules
+                .Include(u => u.User)
+                .Include(u => u.Subject)
+                .Include(u => u.ScheduleTimestamps)
+                .FirstOrDefaultAsync(ds => ds.User.Id == new Guid(userId) &&
+                    ds.Subject.Id == new Guid(subjectId))
+                ?? throw new NotFoundException("ScheduleNotFound");
+
+            return CreateDtoFromEntity(schedule);
+        }
+
         private async Task<Subject> CreateNewSubjectIfNotExists(String SubjectName)
         {
             var subject = await _dbContext.Subjects
@@ -74,6 +88,54 @@ namespace Meedu.Services
             }
 
             return subject;
+        }
+
+        private ScheduleDto CreateDtoFromEntity(DaySchedule entity)
+        {
+            var scheduleDto = new ScheduleDto()
+            {
+                Id = entity.Id.ToString(),
+                DayOfWeek = entity.DayOfWeek,
+                Subject = new SubjectDto()
+                {
+                    Id = entity.Subject.Id.ToString(),
+                    Name = entity.Subject.Name
+                },
+                ScheduleTimespans = new List<ScheduleTimespanDto>()
+            };
+
+            if(entity.ScheduleTimestamps != null && entity.ScheduleTimestamps.Count != 0)
+            {
+                foreach(var entityTimestamp in entity.ScheduleTimestamps)
+                {
+                    var timespanDto = new ScheduleTimespanDto()
+                    {
+                        AvailableFrom = entityTimestamp.AvailableFrom.ToString(),
+                        AvailableTo = entityTimestamp.AvailableTo.ToString(),
+                        LessonReservations = new List<LessonReservationDto>()
+                    };
+
+                    if(entityTimestamp.LessonReservations != null && entityTimestamp.LessonReservations.Count != 0)
+                    {
+                        foreach(var entityReservation in entityTimestamp.LessonReservations)
+                        {
+                            var reservationDto = new LessonReservationDto()
+                            {
+                                Id = entityReservation.Id.ToString(),
+                                ReservationDate = entityReservation.ReservationDate,
+                                ReservedBy = new DtoNameId()
+                                {
+                                    Id = entityReservation.ReservedBy.Id.ToString(),
+                                    Name = entityReservation.ReservedBy.LastName
+                                }
+                            };
+                            timespanDto.LessonReservations.Add(reservationDto);
+                        }
+                    }
+                    scheduleDto.ScheduleTimespans.Add(timespanDto);
+                }
+            }
+            return scheduleDto;
         }
     }
 }
