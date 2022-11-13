@@ -1,4 +1,4 @@
-﻿namespace Meedu.Entities
+﻿namespace Meedu.Entities.Enums
 {
     public enum TeachingRange
     {

@@ -1,4 +1,4 @@
-﻿using Meedu.Entities;
+﻿using Meedu.Entities.Enums;
 
 namespace Meedu.Models
 {
