@@ -8,6 +8,8 @@ namespace Meedu.Entities
         public DbSet<Role> Roles { get; set; }
         public DbSet<PrivateLessonOffer> PrivateLessonOffers { get; set; }
         public DbSet<Subject> Subjects { get; set; }
+        public DbSet<DaySchedule> DaySchedules { get; set; }
+        public DbSet<ScheduleTimespan> ScheduleTimespans { get; set; }
 
         public MeeduDbContext(DbContextOptions<MeeduDbContext> options) : base(options)
         {
