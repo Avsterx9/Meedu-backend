@@ -6,7 +6,7 @@ namespace Meedu.Entities
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
-        public DayOfWeek DayOfWeek { get; set; }
+        public Entities.Enums.DayOfWeek DayOfWeek { get; set; }
         public User User { get; set; }
         public DateTime Created { get; set; }
         public virtual List<ScheduleTimespan> ScheduleTimestamps { get; set; }

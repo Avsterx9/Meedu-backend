@@ -5,8 +5,9 @@ namespace Meedu.Models
     public class ScheduleDto
     {
         [Required]
-        public DayOfWeek DayOfWeek { get; set; }
-        public TimeSpan AvailableFrom { get; set; }
-        public TimeSpan AvailableTo { get; set; }
+        public Entities.Enums.DayOfWeek DayOfWeek { get; set; }
+        public List<ScheduleTimespanDto> ScheduleTimespans { get; set; }
+        [Required]
+        public SubjectDto Subject { get; set; }
     }
 }

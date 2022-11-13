@@ -3,8 +3,9 @@
     public class ScheduleTimespan
     {
         public Guid Id { get; set; }
-        public TimeSpan AvailableFrom { get; set; }
-        public TimeSpan AvailableTo { get; set; }
-        public virtual User ReservedBy { get; set; }
+        public DateTime AvailableFrom { get; set; }
+        public DateTime AvailableTo { get; set; }
+        public virtual List<LessonReservation> LessonReservations {get; set;}
+
     }
 }
