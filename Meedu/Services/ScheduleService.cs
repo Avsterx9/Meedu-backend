@@ -8,7 +8,8 @@ namespace Meedu.Services
     public interface IScheduleService
     {
         Task AddScheduleAsync(ScheduleDto dto);
-        Task<ScheduleDto> GetSubjectByUserAndSubject(string subjectId, string userId);
+        Task<ScheduleDto> GetSubjectByUserAndSubjectAsync(string subjectId, string userId);
+        Task AddTimespanToScheduleAsync(ScheduleTimespanDto dto, string scheduleId);
     }
 
     public class ScheduleService : IScheduleService
@@ -63,7 +64,7 @@ namespace Meedu.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<ScheduleDto> GetSubjectByUserAndSubject(string subjectId, string userId)
+        public async Task<ScheduleDto> GetSubjectByUserAndSubjectAsync(string subjectId, string userId)
         {
             var schedule = await _dbContext.DaySchedules
                 .Include(u => u.User)
@@ -74,6 +75,30 @@ namespace Meedu.Services
                 ?? throw new NotFoundException("ScheduleNotFound");
 
             return CreateDtoFromEntity(schedule);
+        }
+
+        public async Task AddTimespanToScheduleAsync(ScheduleTimespanDto dto, string scheduleId)
+        {
+            var schedule = await _dbContext.DaySchedules
+                .Include(d => d.ScheduleTimestamps)
+                .FirstOrDefaultAsync(d => d.Id == new Guid(scheduleId))
+                ?? throw new BadRequestException("ScheduleNotFound");
+
+            var availableFrom = DateTime.Parse(dto.AvailableFrom);
+            var availableTo = DateTime.Parse(dto.AvailableTo);
+
+            if (schedule.ScheduleTimestamps.Any(x => x.AvailableFrom.Hour == availableFrom.Hour))
+                throw new BadRequestException("TimestampNotAvailable");
+
+            var timespan = new ScheduleTimespan()
+            {
+                LessonReservations = null,
+                AvailableFrom = availableFrom,
+                AvailableTo = DateTime.Parse(dto.AvailableTo),
+            };
+
+            schedule.ScheduleTimestamps.Add(timespan);
+            await _dbContext.SaveChangesAsync();
         }
 
         private async Task<Subject> CreateNewSubjectIfNotExists(String SubjectName)

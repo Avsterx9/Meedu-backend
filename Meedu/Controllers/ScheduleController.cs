@@ -27,7 +27,15 @@ namespace Meedu.Controllers
         [HttpPost("getByUserAndSubject")]
         public async Task<ActionResult> GetSchedule(string subjectId, string userId)
         {
-            return Ok(await _scheduleService.GetSubjectByUserAndSubject(subjectId, userId));
+            return Ok(await _scheduleService.GetSubjectByUserAndSubjectAsync(subjectId, userId));
+        }
+
+        [HttpPost("timespans/add")]
+        //[Authorize]
+        public async Task<ActionResult> AddTimespanToSchedule([FromBody] ScheduleTimespanDto scheduleTimespanDto, string scheduleId)
+        {
+            await _scheduleService.AddTimespanToScheduleAsync(scheduleTimespanDto, scheduleId);
+            return Ok();
         }
     }
 }
