@@ -24,25 +24,41 @@ namespace Meedu.Controllers
             return Ok();
         }
 
-        [HttpPost("getByUserAndSubject")]
+        [HttpGet("getByUserAndSubject")]
         public async Task<ActionResult> GetSchedule(string subjectId, string userId)
         {
             return Ok(await _scheduleService.GetSubjectByUserAndSubjectAsync(subjectId, userId));
         }
 
         [HttpPost("timespans/add")]
-        //[Authorize]
+        [Authorize]
         public async Task<ActionResult> AddTimespanToSchedule([FromBody] ScheduleTimespanDto scheduleTimespanDto, string scheduleId)
         {
             await _scheduleService.AddTimespanToScheduleAsync(scheduleTimespanDto, scheduleId);
             return Ok();
         }
 
-        [HttpPost("timespans/delete")]
-        //[Authorize]
-        public async Task<ActionResult> DeleteTimespanFromSchedule(string timespanId, string scheduleId)
+        [HttpDelete("timespans/delete")]
+        [Authorize]
+        public async Task<ActionResult> DeleteTimespanFromSchedule(string timespanId)
         {
-            await _scheduleService.DeleteTimespanFromScheduleAsync(timespanId, scheduleId);
+            await _scheduleService.DeleteTimespanFromScheduleAsync(timespanId);
+            return Ok();
+        }
+
+        [HttpPost("reservations/add")]
+        //[Authorize]
+        public async Task<ActionResult> AddReservation([FromBody] LessonReservationDto reservation, string timespanId)
+        {
+            await _scheduleService.AddReservationAsync(reservation, timespanId);
+            return Ok();
+        }
+
+        [HttpDelete("reservations/delete")]
+        //[Authorize]
+        public async Task<ActionResult> RemoveReservation(string reservationId)
+        {
+            await _scheduleService.DeleteReservationAsync(reservationId);
             return Ok();
         }
     }

@@ -10,7 +10,9 @@ namespace Meedu.Services
         Task AddScheduleAsync(ScheduleDto dto);
         Task<ScheduleDto> GetSubjectByUserAndSubjectAsync(string subjectId, string userId);
         Task AddTimespanToScheduleAsync(ScheduleTimespanDto dto, string scheduleId);
-        Task DeleteTimespanFromScheduleAsync(string timespanId, string scheduleId);
+        Task DeleteTimespanFromScheduleAsync(string timespanId);
+        Task AddReservationAsync(LessonReservationDto dto, string timespanId);
+        Task DeleteReservationAsync(string reservationId);
     }
 
     public class ScheduleService : IScheduleService
@@ -101,21 +103,44 @@ namespace Meedu.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task DeleteTimespanFromScheduleAsync(string timespanId, string scheduleId)
+        public async Task DeleteTimespanFromScheduleAsync(string timespanId)
         {
-            if (String.IsNullOrEmpty(timespanId) && String.IsNullOrEmpty(scheduleId))
-                throw new BadRequestException("ScheduleNotFound");
+            var timespan = await _dbContext.ScheduleTimespans
+                .FirstOrDefaultAsync(d => d.Id == new Guid(timespanId))
+                ?? throw new BadRequestException("TimespanNotFound");
 
-            var schedule = await _dbContext.DaySchedules
-                .Include(d => d.ScheduleTimestamps)
-                .FirstOrDefaultAsync(d => d.Id == new Guid(scheduleId))
-                ?? throw new BadRequestException("ScheduleNotFound");
+            _dbContext.ScheduleTimespans.Remove(timespan);
+            await _dbContext.SaveChangesAsync();
+        }
 
-            var timespan = schedule.ScheduleTimestamps
-                .FirstOrDefault(t => t.Id == new Guid(timespanId))
-                ?? throw new BadRequestException("Timestamp");
+        public async Task AddReservationAsync(LessonReservationDto dto, string timespanId)
+        {
+            var timespan = await _dbContext.ScheduleTimespans
+                .FirstOrDefaultAsync(d => d.Id == new Guid(timespanId))
+                ?? throw new BadRequestException("TimespanNotFound");
 
-            schedule.ScheduleTimestamps.Remove(timespan);
+            if (timespan.LessonReservations == null)
+                timespan.LessonReservations = new List<LessonReservation>();
+
+            if(timespan.LessonReservations.Any(r => r.ReservationDate == dto.ReservationDate))
+                throw new BadRequestException("TimespanNotFound");
+
+            timespan.LessonReservations.Add(new LessonReservation()
+            {
+                ReservedBy = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == new Guid(dto.ReservedBy.Id)),
+                ReservationDate = dto.ReservationDate
+            });
+
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteReservationAsync(string reservationId)
+        {
+            var reservation = await _dbContext.LessonReservations
+                .FirstOrDefaultAsync(r => r.Id == new Guid(reservationId))
+                ?? throw new BadRequestException("ReservationNotFound");
+
+            _dbContext.LessonReservations.Remove(reservation);
             await _dbContext.SaveChangesAsync();
         }
 
