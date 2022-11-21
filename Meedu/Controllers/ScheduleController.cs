@@ -37,5 +37,13 @@ namespace Meedu.Controllers
             await _scheduleService.AddTimespanToScheduleAsync(scheduleTimespanDto, scheduleId);
             return Ok();
         }
+
+        [HttpPost("timespans/delete")]
+        //[Authorize]
+        public async Task<ActionResult> DeleteTimespanFromSchedule(string timespanId, string scheduleId)
+        {
+            await _scheduleService.DeleteTimespanFromScheduleAsync(timespanId, scheduleId);
+            return Ok();
+        }
     }
 }

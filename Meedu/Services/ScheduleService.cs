@@ -10,6 +10,7 @@ namespace Meedu.Services
         Task AddScheduleAsync(ScheduleDto dto);
         Task<ScheduleDto> GetSubjectByUserAndSubjectAsync(string subjectId, string userId);
         Task AddTimespanToScheduleAsync(ScheduleTimespanDto dto, string scheduleId);
+        Task DeleteTimespanFromScheduleAsync(string timespanId, string scheduleId);
     }
 
     public class ScheduleService : IScheduleService
@@ -92,12 +93,29 @@ namespace Meedu.Services
 
             var timespan = new ScheduleTimespan()
             {
-                LessonReservations = null,
                 AvailableFrom = availableFrom,
                 AvailableTo = DateTime.Parse(dto.AvailableTo),
             };
 
             schedule.ScheduleTimestamps.Add(timespan);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteTimespanFromScheduleAsync(string timespanId, string scheduleId)
+        {
+            if (String.IsNullOrEmpty(timespanId) && String.IsNullOrEmpty(scheduleId))
+                throw new BadRequestException("ScheduleNotFound");
+
+            var schedule = await _dbContext.DaySchedules
+                .Include(d => d.ScheduleTimestamps)
+                .FirstOrDefaultAsync(d => d.Id == new Guid(scheduleId))
+                ?? throw new BadRequestException("ScheduleNotFound");
+
+            var timespan = schedule.ScheduleTimestamps
+                .FirstOrDefault(t => t.Id == new Guid(timespanId))
+                ?? throw new BadRequestException("Timestamp");
+
+            schedule.ScheduleTimestamps.Remove(timespan);
             await _dbContext.SaveChangesAsync();
         }
 
