@@ -11,7 +11,7 @@ namespace Meedu.Services
         Task<ScheduleDto> GetSubjectByUserAndSubjectAsync(string subjectId, string userId);
         Task AddTimespanToScheduleAsync(ScheduleTimespanDto dto, string scheduleId);
         Task DeleteTimespanFromScheduleAsync(string timespanId);
-        Task AddReservationAsync(LessonReservationDto dto, string timespanId);
+        Task AddReservationAsync(LessonReservationDto dto, string scheduleId, string timespanId);
         Task DeleteReservationAsync(string reservationId);
     }
 
@@ -113,21 +113,31 @@ namespace Meedu.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task AddReservationAsync(LessonReservationDto dto, string timespanId)
+        public async Task AddReservationAsync(LessonReservationDto dto, string scheduleId, string timespanId)
         {
-            var timespan = await _dbContext.ScheduleTimespans
-                .FirstOrDefaultAsync(d => d.Id == new Guid(timespanId))
+            var schedule = await _dbContext.DaySchedules
+                .Include(s => s.ScheduleTimestamps)
+                .FirstOrDefaultAsync(s => s.Id == new Guid(scheduleId))
+                ?? throw new BadRequestException("ScheduleNotFound");
+
+            var timespan = schedule.ScheduleTimestamps
+                .FirstOrDefault(t => t.Id == new Guid(timespanId))
                 ?? throw new BadRequestException("TimespanNotFound");
 
             if (timespan.LessonReservations == null)
                 timespan.LessonReservations = new List<LessonReservation>();
 
             if(timespan.LessonReservations.Any(r => r.ReservationDate == dto.ReservationDate))
-                throw new BadRequestException("TimespanNotFound");
+                throw new BadRequestException("DateIsAlreadyReserved");
 
+            var user = await _dbContext.Users
+                .FirstOrDefaultAsync(u => u.Id == new Guid(dto.ReservedBy.Id))
+                ?? throw new BadRequestException("UserNotFound");
+
+            if(dto.ReservationDate.DayOfWeek.ToString() == schedule.DayOfWeek.ToString())
             timespan.LessonReservations.Add(new LessonReservation()
             {
-                ReservedBy = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == new Guid(dto.ReservedBy.Id)),
+                ReservedBy = user,
                 ReservationDate = dto.ReservationDate
             });
 

@@ -48,9 +48,9 @@ namespace Meedu.Controllers
 
         [HttpPost("reservations/add")]
         //[Authorize]
-        public async Task<ActionResult> AddReservation([FromBody] LessonReservationDto reservation, string timespanId)
+        public async Task<ActionResult> AddReservation([FromBody] LessonReservationDto reservation,string scheduleId, string timespanId)
         {
-            await _scheduleService.AddReservationAsync(reservation, timespanId);
+            await _scheduleService.AddReservationAsync(reservation, scheduleId, timespanId);
             return Ok();
         }
 
