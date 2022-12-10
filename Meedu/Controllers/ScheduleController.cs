@@ -25,9 +25,9 @@ namespace Meedu.Controllers
         }
 
         [HttpGet("getByUserAndSubject")]
-        public async Task<ActionResult<ScheduleDto>> GetSchedule(string subjectId, string userId)
+        public async Task<ActionResult<ScheduleDto>> GetSchedule(string lessonOfferId)
         {
-            return Ok(await _scheduleService.GetSubjectByUserAndSubjectAsync(subjectId, userId));
+            return Ok(await _scheduleService.GetScheduleByLessonOfferId(lessonOfferId));
         }
 
         [HttpPost("timespans/add")]

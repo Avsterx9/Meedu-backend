@@ -8,10 +8,10 @@ namespace Meedu.Services
     public interface IScheduleService
     {
         Task AddScheduleAsync(ScheduleDto dto);
-        Task<ScheduleDto> GetSubjectByUserAndSubjectAsync(string subjectId, string userId);
+        Task<ScheduleDto> GetScheduleByLessonOfferId(string lessonId);
         Task AddTimespanToScheduleAsync(ScheduleTimespanDto dto, string scheduleId);
         Task DeleteTimespanFromScheduleAsync(string timespanId);
-        Task AddReservationAsync(LessonReservationDto dto, string scheduleId, string timespanId);
+        Task AddReservationAsync(LessonReservationDto dto, string timespanId);
         Task DeleteReservationAsync(string reservationId);
     }
 
@@ -72,14 +72,15 @@ namespace Meedu.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<ScheduleDto> GetSubjectByUserAndSubjectAsync(string subjectId, string userId)
+        public async Task<ScheduleDto> GetScheduleByLessonOfferId(string lessonId)
         {
+            var lessonGuid = ValidateGuid(lessonId);
+
             var schedule = await _dbContext.DaySchedules
                 .Include(u => u.User)
                 .Include(u => u.Subject)
                 .Include(u => u.ScheduleTimestamps)
-                .FirstOrDefaultAsync(ds => ds.User.Id == new Guid(userId) &&
-                    ds.Subject.Id == new Guid(subjectId))
+                .FirstOrDefaultAsync(ds => ds.PrivateLessonOffer.Id == lessonGuid)
                 ?? throw new NotFoundException("ScheduleNotFound");
 
             return CreateDtoFromEntity(schedule);
@@ -87,9 +88,11 @@ namespace Meedu.Services
 
         public async Task AddTimespanToScheduleAsync(ScheduleTimespanDto dto, string scheduleId)
         {
+            var scheduleGuid = ValidateGuid(scheduleId);
+
             var schedule = await _dbContext.DaySchedules
                 .Include(d => d.ScheduleTimestamps)
-                .FirstOrDefaultAsync(d => d.Id == new Guid(scheduleId))
+                .FirstOrDefaultAsync(d => d.Id == scheduleGuid)
                 ?? throw new BadRequestException("ScheduleNotFound");
 
             var availableFrom = DateTime.Parse(dto.AvailableFrom);
@@ -110,23 +113,22 @@ namespace Meedu.Services
 
         public async Task DeleteTimespanFromScheduleAsync(string timespanId)
         {
+            var timespanGuid = ValidateGuid(timespanId);
+
             var timespan = await _dbContext.ScheduleTimespans
-                .FirstOrDefaultAsync(d => d.Id == new Guid(timespanId))
+                .FirstOrDefaultAsync(d => d.Id == timespanGuid)
                 ?? throw new BadRequestException("TimespanNotFound");
 
             _dbContext.ScheduleTimespans.Remove(timespan);
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task AddReservationAsync(LessonReservationDto dto, string scheduleId, string timespanId)
+        public async Task AddReservationAsync(LessonReservationDto dto, string timespanId)
         {
-            var schedule = await _dbContext.DaySchedules
-                .Include(s => s.ScheduleTimestamps)
-                .FirstOrDefaultAsync(s => s.Id == new Guid(scheduleId))
-                ?? throw new BadRequestException("ScheduleNotFound");
+            var timespanGuid = ValidateGuid(timespanId);
 
-            var timespan = schedule.ScheduleTimestamps
-                .FirstOrDefault(t => t.Id == new Guid(timespanId))
+            var timespan = _dbContext.ScheduleTimespans
+                .FirstOrDefault(t => t.Id == timespanGuid)
                 ?? throw new BadRequestException("TimespanNotFound");
 
             if (timespan.LessonReservations == null)
@@ -151,8 +153,10 @@ namespace Meedu.Services
 
         public async Task DeleteReservationAsync(string reservationId)
         {
+            var reservationGuid = ValidateGuid(reservationId);
+
             var reservation = await _dbContext.LessonReservations
-                .FirstOrDefaultAsync(r => r.Id == new Guid(reservationId))
+                .FirstOrDefaultAsync(r => r.Id == reservationGuid)
                 ?? throw new BadRequestException("ReservationNotFound");
 
             _dbContext.LessonReservations.Remove(reservation);
@@ -219,6 +223,14 @@ namespace Meedu.Services
                 }
             }
             return scheduleDto;
+        }
+
+        private Guid ValidateGuid(string guidToValidate)
+        {
+            if (!Guid.TryParse(guidToValidate, out var guid))
+                throw new BadRequestException("InvalidGuid");
+
+            return guid;
         }
     }
 }
