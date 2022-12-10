@@ -16,7 +16,7 @@ namespace Meedu.Controllers
             this._subjectService = _subjectService;
         }
         [HttpGet("list")]
-        public async Task<ActionResult> GetAll()
+        public async Task<ActionResult<List<SubjectDto>>> GetAll()
         {
             return Ok(await _subjectService.GetAll());
         }

@@ -25,14 +25,14 @@ namespace Meedu.Controllers
         }
 
         [HttpGet("list")]
-        public async Task<ActionResult> GetAllLessonOffers()
+        public async Task<ActionResult<List<PrivateLessonOfferDto>>> GetAllLessonOffers()
         {
             return Ok(await privateLessonService.GetAllLessonOffersAsync());
         }
 
         [HttpGet("getByUser")]
         [Authorize]
-        public async Task<ActionResult> GetLessonOffersByUser()
+        public async Task<ActionResult<List<PrivateLessonOfferDto>>> GetLessonOffersByUser()
         {
             return Ok(await privateLessonService.GetLessonOffersByUserAsync());
         }
@@ -47,7 +47,7 @@ namespace Meedu.Controllers
 
         [HttpGet("getById")]
         [Authorize]
-        public async Task<ActionResult> GetById(string id)
+        public async Task<ActionResult<PrivateLessonOfferDto>> GetById(string id)
         {
             return Ok(await privateLessonService.GetByIdAsync(id));
         }
@@ -61,7 +61,7 @@ namespace Meedu.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult> SimpleSearchByName(string? searchValue = "")
+        public async Task<ActionResult<List<PrivateLessonOfferDto>>> SimpleSearchByName(string? searchValue = "")
         {
             if (searchValue == null)
                 searchValue = String.Empty;
@@ -70,7 +70,7 @@ namespace Meedu.Controllers
         }
 
         [HttpPost("advancedSearch")]
-        public async Task<ActionResult> AdvancedSearch(LessonOfferAdvancedSearchDto dto)
+        public async Task<ActionResult<List<PrivateLessonOfferDto>>> AdvancedSearch(LessonOfferAdvancedSearchDto dto)
         {
             return Ok(await privateLessonService.AdvancedSearch(dto));
         }

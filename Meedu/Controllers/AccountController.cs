@@ -32,7 +32,7 @@ namespace Meedu.Controllers
 
         [HttpGet("getUserInfo")]
         [Authorize]
-        public async Task<ActionResult> GetUserInfo()
+        public async Task<ActionResult<UserInfoDto>> GetUserInfo()
         {
             return Ok(await accountService.GetUserInfo());
         }

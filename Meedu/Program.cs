@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using NLog.Web;
 using Meedu.Middleware;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 //builder.Logging.ClearProviders();
@@ -20,7 +21,6 @@ var connectionString = builder.Configuration.GetConnectionString("MeeduConnectio
 builder.Services.AddDbContext<MeeduDbContext>(x => x.UseSqlServer(connectionString));
 
 builder.Services.AddControllers().AddFluentValidation();
-//builder.Services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters(); ;
 // Authentication
 
 var authSettings = new AuthSettings();
@@ -46,6 +46,15 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
+builder.Services.AddSwaggerGen(config =>
+{
+    config.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Meedu API",
+        Version = "v1",
+    });
+});
+
 // SERVICES
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IPrivateLessonService, PrivateLessonService>();
@@ -63,7 +72,6 @@ builder.Services.AddHttpContextAccessor();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options => options.AddPolicy(name: "MeeduFrontend",
     policy => 
