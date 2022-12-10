@@ -10,5 +10,7 @@ namespace Meedu.Models
         public List<ScheduleTimespanDto> ScheduleTimespans { get; set; }
         [Required]
         public SubjectDto Subject { get; set; }
+        [Required]
+        public String lessonOfferId { get; set; }
     }
 }

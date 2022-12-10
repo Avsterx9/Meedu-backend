@@ -30,13 +30,17 @@ namespace Meedu.Services
 
         public async Task AddScheduleAsync(ScheduleDto dto)
         {
-            var userID = _userContextService.GetUserId;
+            var userId = _userContextService.GetUserId;
 
             var schedule = await _dbContext.DaySchedules
-                .FirstOrDefaultAsync(ds => ds.User.Id == userID && ds.Subject.Name == dto.Subject.Name);
+                .FirstOrDefaultAsync(ds => ds.User.Id == userId && ds.Subject.Name == dto.Subject.Name);
 
             if (schedule != null)
                 throw new BadRequestException("ScheduleAlreadyExists");
+
+            var lessonOffer = await _dbContext.PrivateLessonOffers
+                .FirstOrDefaultAsync(x => x.Id == new Guid(dto.lessonOfferId))
+                ?? throw new BadRequestException("LessonOfferNotExists");
 
             Subject subject = await CreateNewSubjectIfNotExists(dto.Subject.Name);
             var timestamps = new List<ScheduleTimespan>();
@@ -59,8 +63,9 @@ namespace Meedu.Services
                 DayOfWeek = dto.DayOfWeek,
                 Subject = subject,
                 Created = DateTime.Now,
-                User = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userID),
-                ScheduleTimestamps = timestamps
+                User = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId),
+                ScheduleTimestamps = timestamps,
+                PrivateLessonOffer = lessonOffer
             };
 
             await _dbContext.AddAsync(schedule);
