@@ -11,5 +11,6 @@ namespace Meedu.Entities
         public DateTime Created { get; set; }
         public virtual List<ScheduleTimespan> ScheduleTimestamps { get; set; }
         public virtual Subject Subject { get; set; }
+        public virtual PrivateLessonOffer PrivateLessonOffer { get; set; }
     }
 }
