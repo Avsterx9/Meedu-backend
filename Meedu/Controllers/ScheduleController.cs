@@ -24,8 +24,8 @@ namespace Meedu.Controllers
             return Ok();
         }
 
-        [HttpGet("getByUserAndSubject")]
-        public async Task<ActionResult<ScheduleDto>> GetSchedule(string lessonOfferId)
+        [HttpGet("getByLessonOffer")]
+        public async Task<ActionResult<List<ScheduleDto>>> GetSchedule(string lessonOfferId)
         {
             return Ok(await _scheduleService.GetScheduleByLessonOfferId(lessonOfferId));
         }

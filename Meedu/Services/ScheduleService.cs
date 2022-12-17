@@ -8,7 +8,7 @@ namespace Meedu.Services
     public interface IScheduleService
     {
         Task AddScheduleAsync(ScheduleDto dto);
-        Task<ScheduleDto> GetScheduleByLessonOfferId(string lessonId);
+        Task<List<ScheduleDto>> GetScheduleByLessonOfferId(string lessonId);
         Task AddTimespanToScheduleAsync(ScheduleTimespanDto dto, string scheduleId);
         Task DeleteTimespanFromScheduleAsync(string timespanId);
         Task AddReservationAsync(LessonReservationDto dto, string scheduleId, string timespanId);
@@ -35,8 +35,8 @@ namespace Meedu.Services
             var schedule = await _dbContext.DaySchedules
                 .FirstOrDefaultAsync(ds => ds.User.Id == userId && ds.Subject.Name == dto.Subject.Name);
 
-            if (schedule != null)
-                throw new BadRequestException("ScheduleAlreadyExists");
+            //if (schedule != null)
+            //    throw new BadRequestException("ScheduleAlreadyExists");
 
             var lessonOffer = await _dbContext.PrivateLessonOffers
                 .FirstOrDefaultAsync(x => x.Id == new Guid(dto.lessonOfferId))
@@ -72,18 +72,20 @@ namespace Meedu.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<ScheduleDto> GetScheduleByLessonOfferId(string lessonId)
+        public async Task<List<ScheduleDto>> GetScheduleByLessonOfferId(string lessonId)
         {
             var lessonGuid = ValidateGuid(lessonId);
 
-            var schedule = await _dbContext.DaySchedules
+            var schedules = await _dbContext.DaySchedules
                 .Include(u => u.User)
                 .Include(u => u.Subject)
                 .Include(u => u.ScheduleTimestamps)
-                .FirstOrDefaultAsync(ds => ds.PrivateLessonOffer.Id == lessonGuid)
+                .Where(ds => ds.PrivateLessonOffer.Id == lessonGuid)
+                .ToListAsync()
                 ?? throw new NotFoundException("ScheduleNotFound");
 
-            return CreateDtoFromEntity(schedule);
+            //CreateDtoFromEntity(schedules);
+            return schedules.Select(x => CreateDtoFromEntity(x)).ToList();
         }
 
         public async Task AddTimespanToScheduleAsync(ScheduleTimespanDto dto, string scheduleId)
@@ -129,11 +131,13 @@ namespace Meedu.Services
             var scheduleGuid = ValidateGuid(scheduleId);
 
             var schedule = await _dbContext.DaySchedules
+                .Include(x => x.ScheduleTimestamps)
                 .FirstOrDefaultAsync(t => t.Id == scheduleGuid)
                 ?? throw new BadRequestException("ScheduleNotFound");
 
-            var timespan = schedule.ScheduleTimestamps
-                .FirstOrDefault(t => t.Id == timespanGuid)
+            var timespan = await _dbContext.ScheduleTimespans
+                .Include(x => x.LessonReservations)
+                .FirstOrDefaultAsync(t => t.Id == timespanGuid)
                 ?? throw new BadRequestException("TimespanNotFound");
 
             if (timespan.LessonReservations == null)
@@ -146,7 +150,9 @@ namespace Meedu.Services
                 .FirstOrDefaultAsync(u => u.Id == new Guid(dto.ReservedBy.Id))
                 ?? throw new BadRequestException("UserNotFound");
 
-            if(dto.ReservationDate.DayOfWeek.ToString() == schedule.DayOfWeek.ToString())
+            if(dto.ReservationDate.DayOfWeek.ToString() != schedule.DayOfWeek.ToString())
+                throw new BadRequestException("ReservationDayIsIncorrect");
+
             timespan.LessonReservations.Add(new LessonReservation()
             {
                 ReservedBy = user,
@@ -202,8 +208,8 @@ namespace Meedu.Services
                 {
                     var timespanDto = new ScheduleTimespanDto()
                     {
-                        AvailableFrom = entityTimestamp.AvailableFrom.ToString(),
-                        AvailableTo = entityTimestamp.AvailableTo.ToString(),
+                        AvailableFrom = entityTimestamp.AvailableFrom.ToString("HH:mm"),
+                        AvailableTo = entityTimestamp.AvailableTo.ToString("HH:mm"),
                         LessonReservations = new List<LessonReservationDto>()
                     };
 
