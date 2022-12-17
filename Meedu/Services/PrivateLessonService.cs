@@ -221,6 +221,7 @@ namespace Meedu.Services
                     Id = offer.CreatedBy.Id.ToString(),
                     FirstName = offer.CreatedBy.FirstName,
                     LastName = offer.CreatedBy.LastName,
+                    PhoneNumber = offer.CreatedBy.PhoneNumber
                 }
             };
         }

@@ -46,6 +46,7 @@ namespace Meedu.Services
                 DateOfBirth = dto.DateOfBirth,
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
+                PhoneNumber = dto.PhoneNumber,
                 RoleId = dto.RoleId,
             };
 
@@ -63,15 +64,11 @@ namespace Meedu.Services
                 .FirstOrDefault(x => x.Email == loginDto.Email);
 
             if (user is null)
-            {
                 throw new BadRequestException("Invalid username or password");
-            }
 
             var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password);
             if (result == PasswordVerificationResult.Failed)
-            {
                 throw new BadRequestException("Invalid username or password");
-            }
 
             var claims = new List<Claim>()
             {
@@ -100,16 +97,12 @@ namespace Meedu.Services
             var userId = userContextService.GetUserId;
 
             if(userId is null)
-            {
                 throw new BadRequestException("User does not exist");
-            }
 
             var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
             if (userId is null)
-            {
                 throw new BadRequestException("User does not exist");
-            }
 
             return new UserInfoDto()
             {
@@ -118,6 +111,7 @@ namespace Meedu.Services
                 FirstName = user.FirstName,
                 DateOfBirth = user.DateOfBirth,
                 LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber,
                 RoleId = user.RoleId
             };
         }
