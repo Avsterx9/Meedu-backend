@@ -84,7 +84,6 @@ namespace Meedu.Services
                 .ToListAsync()
                 ?? throw new NotFoundException("ScheduleNotFound");
 
-            //CreateDtoFromEntity(schedules);
             return schedules.Select(x => CreateDtoFromEntity(x)).ToList();
         }
 
@@ -118,9 +117,11 @@ namespace Meedu.Services
             var timespanGuid = ValidateGuid(timespanId);
 
             var timespan = await _dbContext.ScheduleTimespans
+                .Include(x => x.LessonReservations)
                 .FirstOrDefaultAsync(d => d.Id == timespanGuid)
                 ?? throw new BadRequestException("TimespanNotFound");
 
+            _dbContext.LessonReservations.RemoveRange(timespan.LessonReservations);
             _dbContext.ScheduleTimespans.Remove(timespan);
             await _dbContext.SaveChangesAsync();
         }
@@ -208,6 +209,7 @@ namespace Meedu.Services
                 {
                     var timespanDto = new ScheduleTimespanDto()
                     {
+                        Id = entityTimestamp.Id.ToString(),
                         AvailableFrom = entityTimestamp.AvailableFrom.ToString("HH:mm"),
                         AvailableTo = entityTimestamp.AvailableTo.ToString("HH:mm"),
                         LessonReservations = new List<LessonReservationDto>()

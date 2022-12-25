@@ -4,6 +4,7 @@ namespace Meedu.Models
 {
     public class ScheduleTimespanDto
     {
+        public string? Id { get; set; }
         [Required]
         public string AvailableFrom { get; set; }
         [Required]
