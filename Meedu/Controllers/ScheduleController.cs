@@ -55,7 +55,7 @@ namespace Meedu.Controllers
         }
 
         [HttpPost("reservations/add")]
-        //[Authorize]
+        [Authorize]
         public async Task<ActionResult> AddReservation([FromBody] LessonReservationDto reservation, string scheduleId, string timespanId)
         {
             await _scheduleService.AddReservationAsync(reservation, scheduleId, timespanId);
@@ -63,7 +63,7 @@ namespace Meedu.Controllers
         }
 
         [HttpDelete("reservations/delete")]
-        //[Authorize]
+        [Authorize]
         public async Task<ActionResult> RemoveReservation(string reservationId)
         {
             await _scheduleService.DeleteReservationAsync(reservationId);
