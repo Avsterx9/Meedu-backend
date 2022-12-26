@@ -8,6 +8,7 @@ namespace Meedu.Services
     public interface IScheduleService
     {
         Task AddScheduleAsync(ScheduleDto dto);
+        Task DeleteScheduleAsync(string scheduleId);
         Task<List<ScheduleDto>> GetScheduleByLessonOfferId(string lessonId);
         Task AddTimespanToScheduleAsync(ScheduleTimespanDto dto, string scheduleId);
         Task DeleteTimespanFromScheduleAsync(string timespanId);
@@ -69,6 +70,27 @@ namespace Meedu.Services
             };
 
             await _dbContext.AddAsync(schedule);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteScheduleAsync(string scheduleId)
+        {
+            var scheduleGuid = ValidateGuid(scheduleId);
+            var schedule = await _dbContext.DaySchedules
+                .Include(x => x.ScheduleTimestamps)
+                .ThenInclude(x => x.LessonReservations)
+                .FirstOrDefaultAsync(x => x.Id == scheduleGuid)
+                ?? throw new NotFoundException("ScheduleNotFound");
+
+            foreach(var timestamp in schedule.ScheduleTimestamps)
+            {
+                if(timestamp.LessonReservations != null && timestamp.LessonReservations.Count > 0)
+                    _dbContext.LessonReservations.RemoveRange(timestamp.LessonReservations);
+            }
+
+            _dbContext.ScheduleTimespans.RemoveRange(schedule.ScheduleTimestamps);
+            _dbContext.DaySchedules.Remove(schedule);
+
             await _dbContext.SaveChangesAsync();
         }
 

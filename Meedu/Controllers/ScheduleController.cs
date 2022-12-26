@@ -24,6 +24,14 @@ namespace Meedu.Controllers
             return Ok();
         }
 
+        [HttpDelete("delete")]
+        [Authorize]
+        public async Task<ActionResult> DeleteSchedule(string scheduleId)
+        {
+            await _scheduleService.DeleteScheduleAsync(scheduleId);
+            return Ok();
+        }
+
         [HttpGet("getByLessonOffer")]
         public async Task<ActionResult<List<ScheduleDto>>> GetSchedule(string lessonOfferId)
         {
