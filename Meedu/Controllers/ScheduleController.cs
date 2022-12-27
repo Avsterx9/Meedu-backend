@@ -69,5 +69,12 @@ namespace Meedu.Controllers
             await _scheduleService.DeleteReservationAsync(reservationId);
             return Ok();
         }
+
+        [HttpGet("reservations/getReservations")]
+        [Authorize]
+        public async Task<ActionResult<LessonReservationDto>> GetReservationsByTimespanId(string scheduleId, string timespanId)
+        {
+            return Ok(await _scheduleService.GetReservationsByTimespanIdAsync(scheduleId, timespanId));
+        }
     }
 }

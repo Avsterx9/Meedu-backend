@@ -14,6 +14,7 @@ namespace Meedu.Services
         Task DeleteTimespanFromScheduleAsync(string timespanId);
         Task AddReservationAsync(LessonReservationDto dto, string scheduleId, string timespanId);
         Task DeleteReservationAsync(string reservationId);
+        Task<List<LessonReservationDto>> GetReservationsByTimespanIdAsync(string scheduleId, string timespanId);
     }
 
     public class ScheduleService : IScheduleService
@@ -195,6 +196,37 @@ namespace Meedu.Services
 
             _dbContext.LessonReservations.Remove(reservation);
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<List<LessonReservationDto>> GetReservationsByTimespanIdAsync(string scheduleId, string timespanId)
+        {
+            var scheduleGuid = ValidateGuid(scheduleId);
+            var timespanGuid = ValidateGuid(timespanId);
+
+            var schedule = await _dbContext.DaySchedules
+                .Include(x => x.ScheduleTimestamps)
+                .FirstOrDefaultAsync(t => t.Id == scheduleGuid)
+                ?? throw new BadRequestException("ScheduleNotFound");
+
+            var timespan = await _dbContext.ScheduleTimespans
+                .Include(x => x.LessonReservations)
+                .FirstOrDefaultAsync(t => t.Id == timespanGuid)
+                ?? throw new BadRequestException("TimespanNotFound");
+
+            var reservations = timespan.LessonReservations
+                .Where(x => x.ReservationDate > DateTime.Now)
+                .ToList();
+
+            return reservations.Select(x => new LessonReservationDto
+            {
+                Id = x.Id.ToString(),
+                ReservationDate = x.ReservationDate,
+                ReservedBy = new DtoNameId
+                {
+                    Id = x.ReservedBy.Id.ToString(),
+                    Name = $"{x.ReservedBy.FirstName} {x.ReservedBy.LastName}"
+                }
+            }).ToList();
         }
 
         private async Task<Subject> CreateNewSubjectIfNotExists(String SubjectName)
