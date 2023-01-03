@@ -7,5 +7,7 @@
         public DateTime AvailableTo { get; set; }
         public virtual List<LessonReservation> LessonReservations {get; set;}
 
+        public virtual DaySchedule DaySchedule { get; set; }
+
     }
 }
