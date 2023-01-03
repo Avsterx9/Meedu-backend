@@ -210,6 +210,7 @@ namespace Meedu.Services
 
             var timespan = await _dbContext.ScheduleTimespans
                 .Include(x => x.LessonReservations)
+                .ThenInclude(x => x.ReservedBy)
                 .FirstOrDefaultAsync(t => t.Id == timespanGuid)
                 ?? throw new BadRequestException("TimespanNotFound");
 
