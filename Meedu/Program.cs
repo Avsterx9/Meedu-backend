@@ -12,16 +12,16 @@ using System.Text;
 using NLog.Web;
 using Meedu.Middleware;
 using System.Reflection;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
-//builder.Logging.ClearProviders();
 builder.Host.UseNLog();
 
 var connectionString = builder.Configuration.GetConnectionString("MeeduConnectionString");
 builder.Services.AddDbContext<MeeduDbContext>(x => x.UseSqlServer(connectionString));
 
 builder.Services.AddControllers().AddFluentValidation();
-// Authentication
 
 var authSettings = new AuthSettings();
 
@@ -46,13 +46,42 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-builder.Services.AddSwaggerGen(config =>
+builder.Services.AddSwaggerGen(c =>
 {
-    config.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
         Title = "Meedu API",
         Version = "v1",
     });
+    c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        Description = @"JWT Authorization header using the Bearer scheme. 
+                      Enter 'Bearer' [space] and then your token in the text input below.
+                      Example: 'Bearer 12345abcdef'",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+        {
+            {
+              new OpenApiSecurityScheme
+              {
+                Reference = new OpenApiReference
+                  {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                  },
+                  Scheme = "oauth2",
+                  Name = "Bearer",
+                  In = ParameterLocation.Header,
+                },
+                new List<string>()
+              }
+        });
+    c.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 
 // SERVICES
