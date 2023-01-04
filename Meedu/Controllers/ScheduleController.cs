@@ -79,7 +79,7 @@ namespace Meedu.Controllers
 
         [HttpGet("reservations/getReservationsByUser")]
         [Authorize]
-        public async Task<ActionResult<LessonReservationDto>> GetReservationsByUser()
+        public async Task<ActionResult<List<UserLessonReservationsDto>>> GetReservationsByUser()
         {
             return Ok(await _scheduleService.GetReservationsByUser());
         }
