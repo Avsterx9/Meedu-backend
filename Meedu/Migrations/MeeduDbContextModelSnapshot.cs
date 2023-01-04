@@ -51,7 +51,7 @@ namespace Meedu.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DaySchedules");
+                    b.ToTable("DaySchedules", (string)null);
                 });
 
             modelBuilder.Entity("Meedu.Entities.LessonReservation", b =>
@@ -75,7 +75,7 @@ namespace Meedu.Migrations
 
                     b.HasIndex("ScheduleTimespanId");
 
-                    b.ToTable("LessonReservations");
+                    b.ToTable("LessonReservations", (string)null);
                 });
 
             modelBuilder.Entity("Meedu.Entities.PrivateLessonOffer", b =>
@@ -119,7 +119,7 @@ namespace Meedu.Migrations
 
                     b.HasIndex("SubjectId");
 
-                    b.ToTable("PrivateLessonOffers");
+                    b.ToTable("PrivateLessonOffers", (string)null);
                 });
 
             modelBuilder.Entity("Meedu.Entities.Role", b =>
@@ -136,7 +136,7 @@ namespace Meedu.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("Meedu.Entities.ScheduleTimespan", b =>
@@ -158,7 +158,7 @@ namespace Meedu.Migrations
 
                     b.HasIndex("DayScheduleId");
 
-                    b.ToTable("ScheduleTimespans");
+                    b.ToTable("ScheduleTimespans", (string)null);
                 });
 
             modelBuilder.Entity("Meedu.Entities.Subject", b =>
@@ -173,7 +173,7 @@ namespace Meedu.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Subjects");
+                    b.ToTable("Subjects", (string)null);
                 });
 
             modelBuilder.Entity("Meedu.Entities.User", b =>
@@ -212,7 +212,7 @@ namespace Meedu.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Meedu.Entities.DaySchedule", b =>

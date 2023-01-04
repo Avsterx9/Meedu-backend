@@ -15,6 +15,7 @@ namespace Meedu.Services
         Task AddReservationAsync(LessonReservationDto dto, string scheduleId, string timespanId);
         Task DeleteReservationAsync(string reservationId);
         Task<List<LessonReservationDto>> GetReservationsByTimespanIdAsync(string scheduleId, string timespanId);
+        Task<List<UserReservationInfoDto>> GetReservationsByUser();
     }
 
     public class ScheduleService : IScheduleService
@@ -36,9 +37,6 @@ namespace Meedu.Services
 
             var schedule = await _dbContext.DaySchedules
                 .FirstOrDefaultAsync(ds => ds.User.Id == userId && ds.Subject.Name == dto.Subject.Name);
-
-            //if (schedule != null)
-            //    throw new BadRequestException("ScheduleAlreadyExists");
 
             var lessonOffer = await _dbContext.PrivateLessonOffers
                 .FirstOrDefaultAsync(x => x.Id == new Guid(dto.lessonOfferId))
@@ -174,7 +172,7 @@ namespace Meedu.Services
                 .FirstOrDefaultAsync(u => u.Id == new Guid(dto.ReservedBy.Id))
                 ?? throw new BadRequestException("UserNotFound");
 
-            if(dto.ReservationDate.DayOfWeek.ToString() != schedule.DayOfWeek.ToString())
+            if (dto.ReservationDate.DayOfWeek.ToString() != schedule.DayOfWeek.ToString())
                 throw new BadRequestException("ReservationDayIsIncorrect");
 
             timespan.LessonReservations.Add(new LessonReservation()
@@ -228,6 +226,25 @@ namespace Meedu.Services
                     Name = $"{x.ReservedBy.FirstName} {x.ReservedBy.LastName}"
                 }
             }).ToList();
+        }
+
+        public async Task<List<UserReservationInfoDto>> GetReservationsByUser()
+        {
+            var userId = _userContextService.GetUserId;
+
+            var reservations = await _dbContext.LessonReservations
+                .Include(x => x.ReservedBy)
+                .Include(x => x.ScheduleTimespan)
+                .ThenInclude(x => x.DaySchedule)
+                .Where(x => x.ReservedBy.Id == userId && x.ReservationDate >= DateTime.Now)
+                .ToListAsync();
+
+            foreach (var r in reservations)
+            {
+                var x = r.ScheduleTimespan.Id;
+            }
+
+            return null;
         }
 
         private async Task<Subject> CreateNewSubjectIfNotExists(String SubjectName)

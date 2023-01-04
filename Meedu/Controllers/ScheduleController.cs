@@ -76,5 +76,12 @@ namespace Meedu.Controllers
         {
             return Ok(await _scheduleService.GetReservationsByTimespanIdAsync(scheduleId, timespanId));
         }
+
+        [HttpGet("reservations/getReservationsByUser")]
+        [Authorize]
+        public async Task<ActionResult<LessonReservationDto>> GetReservationsByUser()
+        {
+            return Ok(await _scheduleService.GetReservationsByUser());
+        }
     }
 }
