@@ -5,6 +5,7 @@ namespace Meedu.Models
     public class UserLessonReservationsDto
     {
         public DateTime ReservationDate { get; set; }
-        public List<ReservationDataDto> DayReservations { get; set; }  
+        public List<ReservationDataDto> DayReservations { get; set; }
+        public int Day { get; set; }
     }
 }

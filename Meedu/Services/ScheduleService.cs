@@ -15,7 +15,8 @@ namespace Meedu.Services
         Task AddReservationAsync(LessonReservationDto dto, string scheduleId, string timespanId);
         Task DeleteReservationAsync(string reservationId);
         Task<List<LessonReservationDto>> GetReservationsByTimespanIdAsync(string scheduleId, string timespanId);
-        Task<List<UserLessonReservationsDto>> GetReservationsByUser();
+        Task<List<UserLessonReservationsDto>> GetReservationsByUserAsync(int days);
+        Task<List<UserLessonReservationsDto>> GetUserLessonReservationsAsync(int days);
     }
 
     public class ScheduleService : IScheduleService
@@ -228,7 +229,7 @@ namespace Meedu.Services
             }).ToList();
         }
 
-        public async Task<List<UserLessonReservationsDto>> GetReservationsByUser()
+        public async Task<List<UserLessonReservationsDto>> GetReservationsByUserAsync(int days)
         {
             var userId = _userContextService.GetUserId;
 
@@ -237,7 +238,7 @@ namespace Meedu.Services
                 .Include(x => x.ScheduleTimespan)
                 .ThenInclude(x => x.DaySchedule)
                 .ThenInclude(x => x.PrivateLessonOffer)
-                .Where(x => x.ReservedBy.Id == userId && x.ReservationDate >= DateTime.Now && x.ReservationDate <= DateTime.Now.AddDays(7))
+                .Where(x => x.ReservedBy.Id == userId && x.ReservationDate >= DateTime.Now && x.ReservationDate <= DateTime.Now.AddDays(days))
                 .ToListAsync();
 
             var dates = reservations
@@ -252,7 +253,8 @@ namespace Meedu.Services
                 var reservation = new UserLessonReservationsDto
                 {
                     ReservationDate = date,
-                    DayReservations = new List<ReservationDataDto>()
+                    DayReservations = new List<ReservationDataDto>(),
+                    Day = (int)date.DayOfWeek == 6 ? 0 : (int)date.DayOfWeek + 1
                 };
                 foreach (var r in reservations.Where(x => x.ReservationDate == date))
                 {
@@ -265,12 +267,17 @@ namespace Meedu.Services
                         Place = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Place,
                         ReservationId = r.Id.ToString(),
                         ScheduleId = r.ScheduleTimespan.DaySchedule.Id.ToString(),
-                        TimespanId = r.ScheduleTimespan.Id.ToString()
+                        TimespanId = r.ScheduleTimespan.Id.ToString(),
                     });
                 }
                 userLessonReservationsList.Add(reservation);
             }
             return userLessonReservationsList;
+        }
+
+        public async Task<List<UserLessonReservationsDto>> GetUserLessonReservationsAsync(int days)
+        {
+            return null;
         }
 
         private async Task<Subject> CreateNewSubjectIfNotExists(String SubjectName)
