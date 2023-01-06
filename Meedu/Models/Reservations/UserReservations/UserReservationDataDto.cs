@@ -13,5 +13,6 @@ namespace Meedu.Models.Reservations.UserReservations
         public string AvailableTo { get; set; }
         public bool isOnline { get; set; }
         public Place Place { get; set; }
+        public DtoNameLastnameId User { get; set; }
     }
 }
