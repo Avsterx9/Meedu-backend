@@ -1,6 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Meedu.Models.PrivateLessonOffer;
+using System.ComponentModel.DataAnnotations;
 
-namespace Meedu.Models
+namespace Meedu.Models.Schedule
 {
     public class ScheduleTimespanDto
     {

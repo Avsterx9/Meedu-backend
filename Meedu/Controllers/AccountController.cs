@@ -1,4 +1,4 @@
-﻿using Meedu.Models;
+﻿using Meedu.Models.Auth;
 using Meedu.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

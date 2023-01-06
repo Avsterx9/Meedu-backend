@@ -1,6 +1,6 @@
 ﻿using Meedu.Entities.Enums;
 
-namespace Meedu.Models
+namespace Meedu.Models.PrivateLessonOffer
 {
     public class LessonOfferAdvancedSearchDto
     {

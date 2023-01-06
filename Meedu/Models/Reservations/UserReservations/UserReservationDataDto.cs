@@ -1,8 +1,8 @@
 ﻿using Meedu.Entities.Enums;
 
-namespace Meedu.Models
+namespace Meedu.Models.Reservations.UserReservations
 {
-    public class ReservationDataDto
+    public class UserReservationDataDto
     {
         public string ScheduleId { get; set; }
         public string ReservationId { get; set; }

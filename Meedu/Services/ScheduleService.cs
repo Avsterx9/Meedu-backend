@@ -1,6 +1,9 @@
 ﻿using Meedu.Entities;
 using Meedu.Exceptions;
 using Meedu.Models;
+using Meedu.Models.PrivateLessonOffer;
+using Meedu.Models.Reservations.UserReservations;
+using Meedu.Models.Schedule;
 using Microsoft.EntityFrameworkCore;
 
 namespace Meedu.Services
@@ -15,8 +18,8 @@ namespace Meedu.Services
         Task AddReservationAsync(LessonReservationDto dto, string scheduleId, string timespanId);
         Task DeleteReservationAsync(string reservationId);
         Task<List<LessonReservationDto>> GetReservationsByTimespanIdAsync(string scheduleId, string timespanId);
-        Task<List<UserLessonReservationsDto>> GetReservationsByUserAsync(int days);
-        Task<List<UserLessonReservationsDto>> GetUserLessonReservationsAsync(int days);
+        Task<List<UserPrivateLessonReservationsDto>> GetReservationsByUserAsync(int days);
+        Task<List<UserPrivateLessonReservationsDto>> GetUserLessonReservationsAsync(int days);
     }
 
     public class ScheduleService : IScheduleService
@@ -106,7 +109,7 @@ namespace Meedu.Services
                 .ToListAsync()
                 ?? throw new NotFoundException("ScheduleNotFound");
 
-            return schedules.Select(x => CreateDtoFromEntity(x)).ToList();
+            return schedules.Select(x => CreateDtoFromEntity(x)).OrderBy(x => x.DayOfWeek).ToList();
         }
 
         public async Task AddTimespanToScheduleAsync(ScheduleTimespanDto dto, string scheduleId)
@@ -229,7 +232,7 @@ namespace Meedu.Services
             }).ToList();
         }
 
-        public async Task<List<UserLessonReservationsDto>> GetReservationsByUserAsync(int days)
+        public async Task<List<UserPrivateLessonReservationsDto>> GetReservationsByUserAsync(int days)
         {
             var userId = _userContextService.GetUserId;
 
@@ -246,19 +249,19 @@ namespace Meedu.Services
                 .Distinct()
                 .ToList();
 
-            var userLessonReservationsList = new List<UserLessonReservationsDto>();
+            var userLessonReservationsList = new List<UserPrivateLessonReservationsDto>();
 
             foreach (var date in dates)
             {
-                var reservation = new UserLessonReservationsDto
+                var reservation = new UserPrivateLessonReservationsDto
                 {
                     ReservationDate = date,
-                    DayReservations = new List<ReservationDataDto>(),
-                    Day = (int)date.DayOfWeek == 6 ? 0 : (int)date.DayOfWeek + 1
+                    DayReservations = new List<UserReservationDataDto>(),
+                    Day = (int)date.DayOfWeek == 0 ? 6 : (int)date.DayOfWeek - 1
                 };
                 foreach (var r in reservations.Where(x => x.ReservationDate == date))
                 {
-                    reservation.DayReservations.Add(new ReservationDataDto
+                    reservation.DayReservations.Add(new UserReservationDataDto
                     {
                         AvailableFrom = r.ScheduleTimespan.AvailableFrom.ToString("HH:mm"),
                         AvailableTo = r.ScheduleTimespan.AvailableTo.ToString("HH:mm"),
@@ -272,12 +275,57 @@ namespace Meedu.Services
                 }
                 userLessonReservationsList.Add(reservation);
             }
-            return userLessonReservationsList;
+            return userLessonReservationsList.OrderBy(x => x.ReservationDate).ToList();
         }
 
-        public async Task<List<UserLessonReservationsDto>> GetUserLessonReservationsAsync(int days)
+        public async Task<List<UserPrivateLessonReservationsDto>> GetUserLessonReservationsAsync(int days)
         {
-            return null;
+            var userId = _userContextService.GetUserId;
+
+            var schedules = await _dbContext.DaySchedules
+                .Where(x => x.PrivateLessonOffer.CreatedBy.Id == userId)
+                .Include(x => x.PrivateLessonOffer)
+                .Include(x => x.ScheduleTimestamps)
+                .ThenInclude(x => x.LessonReservations)
+                .ToListAsync();
+
+            var dates = schedules
+                .Select(x => x.PrivateLessonOffer)
+                .Distinct()
+                .ToList();
+
+            var userLessonReservationsList = new List<UserPrivateLessonReservationsDto>();
+
+            foreach (var schedule in schedules)
+            {
+                foreach(var timestamp in schedule.ScheduleTimestamps)
+                {
+                    var reservationDto = new UserPrivateLessonReservationsDto()
+                    {
+                        Day = (int)schedule.DayOfWeek == 0 ? 6 : (int)schedule.DayOfWeek - 1,
+                        DayReservations = new List<UserReservationDataDto>(),
+                    };
+
+                    foreach (var reservation in timestamp.LessonReservations)
+                    {
+                        reservationDto.DayReservations.Add(new UserReservationDataDto
+                        {
+                            AvailableFrom = reservation.ScheduleTimespan.AvailableFrom.ToString("HH:mm"),
+                            AvailableTo = reservation.ScheduleTimespan.AvailableTo.ToString("HH:mm"),
+                            isOnline = schedule.PrivateLessonOffer.OnlineLessonsPossible,
+                            LessonTitle = schedule.PrivateLessonOffer.LessonTitle,
+                            Place = schedule.PrivateLessonOffer.Place,
+                            ReservationId = reservation.Id.ToString(),
+                            ScheduleId = schedule.Id.ToString(),
+                            TimespanId = timestamp.Id.ToString()
+                        });
+                        reservationDto.ReservationDate = reservation.ReservationDate;
+                    }
+
+                    userLessonReservationsList.Add(reservationDto);
+                }
+            }
+            return userLessonReservationsList;
         }
 
         private async Task<Subject> CreateNewSubjectIfNotExists(String SubjectName)

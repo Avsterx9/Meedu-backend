@@ -1,6 +1,6 @@
 ﻿using Meedu.Entities;
 using Meedu.Exceptions;
-using Meedu.Models;
+using Meedu.Models.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

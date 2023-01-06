@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Meedu.Entities;
+using Meedu.Models.PrivateLessonOffer;
 
 namespace Meedu.Models.Validators
 {

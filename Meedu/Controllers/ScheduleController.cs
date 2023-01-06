@@ -1,4 +1,6 @@
-﻿using Meedu.Models;
+﻿using Meedu.Models.PrivateLessonOffer;
+using Meedu.Models.Reservations.UserReservations;
+using Meedu.Models.Schedule;
 using Meedu.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -79,14 +81,14 @@ namespace Meedu.Controllers
 
         [HttpGet("reservations/getReservationsByUser")]
         [Authorize]
-        public async Task<ActionResult<List<UserLessonReservationsDto>>> GetReservationsByUser(int days)
+        public async Task<ActionResult<List<UserPrivateLessonReservationsDto>>> GetReservationsByUser(int days)
         {
             return Ok(await _scheduleService.GetReservationsByUserAsync(days));
         }
 
         [HttpGet("reservations/getUserLessonReservations")]
         [Authorize]
-        public async Task<ActionResult<List<UserLessonReservationsDto>>> GetUserLessonReservations(int days)
+        public async Task<ActionResult<List<UserPrivateLessonReservationsDto>>> GetUserLessonReservations(int days)
         {
             return Ok(await _scheduleService.GetUserLessonReservationsAsync(days));
         }

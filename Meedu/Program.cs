@@ -2,7 +2,6 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Meedu;
 using Meedu.Entities;
-using Meedu.Models;
 using Meedu.Models.Validators;
 using Meedu.Services;
 using Microsoft.AspNetCore.Identity;
@@ -14,6 +13,8 @@ using Meedu.Middleware;
 using System.Reflection;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
+using Meedu.Models.PrivateLessonOffer;
+using Meedu.Models.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseNLog();

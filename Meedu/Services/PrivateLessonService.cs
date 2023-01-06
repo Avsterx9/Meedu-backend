@@ -2,6 +2,7 @@
 using Meedu.Entities.Enums;
 using Meedu.Exceptions;
 using Meedu.Models;
+using Meedu.Models.PrivateLessonOffer;
 using Microsoft.EntityFrameworkCore;
 
 namespace Meedu.Services

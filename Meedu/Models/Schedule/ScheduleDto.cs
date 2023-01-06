@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Meedu.Models
+namespace Meedu.Models.Schedule
 {
     public class ScheduleDto
     {
@@ -11,6 +11,6 @@ namespace Meedu.Models
         [Required]
         public SubjectDto Subject { get; set; }
         [Required]
-        public String lessonOfferId { get; set; }
+        public string lessonOfferId { get; set; }
     }
 }

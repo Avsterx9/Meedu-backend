@@ -1,4 +1,4 @@
-﻿namespace Meedu.Models
+﻿namespace Meedu.Models.PrivateLessonOffer
 {
     public class LessonReservationDto
     {

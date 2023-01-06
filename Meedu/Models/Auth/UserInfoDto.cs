@@ -1,4 +1,4 @@
-﻿namespace Meedu.Models
+﻿namespace Meedu.Models.Auth
 {
     public class UserInfoDto
     {
