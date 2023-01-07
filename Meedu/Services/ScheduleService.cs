@@ -262,6 +262,8 @@ namespace Meedu.Services
                 };
                 foreach (var r in reservations.Where(x => x.ReservationDate == date))
                 {
+                    var userInfo = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy;
+
                     reservation.DayReservations.Add(new UserReservationDataDto
                     {
                         AvailableFrom = r.ScheduleTimespan.AvailableFrom.ToString("HH:mm"),
@@ -272,12 +274,13 @@ namespace Meedu.Services
                         ReservationId = r.Id.ToString(),
                         ScheduleId = r.ScheduleTimespan.DaySchedule.Id.ToString(),
                         TimespanId = r.ScheduleTimespan.Id.ToString(),
+                        lessonId = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Id.ToString(),
                         User = new DtoNameLastnameId
                         {
-                            Id = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy.Id.ToString(),
-                            FirstName = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy.FirstName,
-                            LastName = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy.LastName,
-                            PhoneNumber = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy.PhoneNumber
+                            Id = userInfo.Id.ToString(),
+                            FirstName = userInfo.FirstName,
+                            LastName = userInfo.LastName,
+                            PhoneNumber = userInfo.PhoneNumber
                         }
                     });
                 }
@@ -326,6 +329,7 @@ namespace Meedu.Services
                         ReservationId = r.Id.ToString(),
                         ScheduleId = r.ScheduleTimespan.DaySchedule.Id.ToString(),
                         TimespanId = r.ScheduleTimespan.Id.ToString(),
+                        lessonId = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Id.ToString(),
                         User = new DtoNameLastnameId
                         {
                             Id = r.ReservedBy.Id.ToString(),

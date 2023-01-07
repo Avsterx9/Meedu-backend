@@ -7,6 +7,7 @@ namespace Meedu.Models.Reservations.UserReservations
         public string ScheduleId { get; set; }
         public string ReservationId { get; set; }
         public string TimespanId { get; set; }
+        public string lessonId { get; set; }
 
         public string LessonTitle { get; set; }
         public string AvailableFrom { get; set; }
