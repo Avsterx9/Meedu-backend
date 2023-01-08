@@ -9,6 +9,7 @@ namespace Meedu.Services
     {
         Task<List<UserReservationDataDto>> GetTodaysUserLessonsAsync();
         Task<List<UserReservationDataDto>> GetUsersLessonsReservationsAsync();
+        Task<List<DtoNameLastnameId>> GetUserStudentsAsync(int amount);
     }
 
     public class DashboardService : IDashboardService
@@ -57,6 +58,8 @@ namespace Meedu.Services
                     User = SetUserInfo(userInfo)
                 });
             }
+            reservations
+                .Sort((x, y) => Int32.Parse(x.AvailableFrom.Split(":")[0]));
             return reservations;
         }
 
@@ -92,7 +95,35 @@ namespace Meedu.Services
                     User = SetUserInfo(lesson.ReservedBy)
                 });
             }
+            reservations
+                .Sort((x, y) => Int32.Parse(x.AvailableFrom.Split(":")[0]));
             return reservations;
+        }
+
+        public async Task<List<DtoNameLastnameId>> GetUserStudentsAsync(int amount)
+        {
+            var userId = _userContextService.GetUserId;
+
+            var reservations = await _dbContext.LessonReservations
+                .Include(x => x.ReservedBy)
+                .Include(x => x.ScheduleTimespan)
+                .ThenInclude(x => x.DaySchedule)
+                .ThenInclude(x => x.PrivateLessonOffer)
+                .ThenInclude(x => x.CreatedBy)
+                .Where(x => x.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy.Id == userId)
+                .ToListAsync();
+
+            var userList = reservations.Select(x => x.ReservedBy)
+                .Take(amount)
+                .Distinct();
+
+            return userList.Select(x => new DtoNameLastnameId
+            {
+                FirstName = x.FirstName,
+                Id = x.Id.ToString(),
+                LastName = x.LastName,
+                PhoneNumber = x.PhoneNumber
+            }).ToList();
         }
 
         private DtoNameLastnameId SetUserInfo(User userInfo)

@@ -286,6 +286,9 @@ namespace Meedu.Services
                 }
                 userLessonReservationsList.Add(reservation);
             }
+            userLessonReservationsList
+                .ForEach(x => x.DayReservations
+                .Sort((x, y) => Int32.Parse(x.AvailableFrom.Split(":")[0])));
             return userLessonReservationsList.OrderBy(x => x.ReservationDate).ToList();
         }
 
@@ -341,6 +344,9 @@ namespace Meedu.Services
                 }
                 userLessonReservationsList.Add(reservation);
             }
+            userLessonReservationsList
+                .ForEach(x => x.DayReservations
+                .Sort((x, y) => Int32.Parse(x.AvailableFrom.Split(":")[0])));
             return userLessonReservationsList.OrderBy(x => x.ReservationDate).ToList();
         }
 

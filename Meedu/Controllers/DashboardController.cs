@@ -1,4 +1,5 @@
-﻿using Meedu.Models.Reservations.UserReservations;
+﻿using Meedu.Models;
+using Meedu.Models.Reservations.UserReservations;
 using Meedu.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,6 +29,13 @@ namespace Meedu.Controllers
         public async Task<ActionResult<List<UserReservationDataDto>>> GetTodayUsersLessonsReservations()
         {
             return Ok(await _dashboardService.GetUsersLessonsReservationsAsync());
+        }
+
+        [HttpGet("getUserStudents")]
+        [Authorize]
+        public async Task<ActionResult<List<DtoNameLastnameId>>> GetUserStudents(int amount)
+        {
+            return Ok(await _dashboardService.GetUserStudentsAsync(amount));
         }
     }
 }
