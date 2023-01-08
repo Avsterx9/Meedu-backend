@@ -18,9 +18,16 @@ namespace Meedu.Controllers
 
         [HttpGet("getTodaysUserLessons")]
         [Authorize]
-        public async Task<ActionResult<List<UserReservationDataDto>>> GetUserInfo()
+        public async Task<ActionResult<List<UserReservationDataDto>>> GetTodaysUserLessons()
         {
-            return Ok(await _dashboardService.GetTodaysUserLessons());
+            return Ok(await _dashboardService.GetTodaysUserLessonsAsync());
+        }
+
+        [HttpGet("getTodayUsersLessonsReservations")]
+        [Authorize]
+        public async Task<ActionResult<List<UserReservationDataDto>>> GetTodayUsersLessonsReservations()
+        {
+            return Ok(await _dashboardService.GetUsersLessonsReservationsAsync());
         }
     }
 }
