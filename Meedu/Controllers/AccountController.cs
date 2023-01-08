@@ -1,4 +1,5 @@
-﻿using Meedu.Models.Auth;
+﻿using Meedu.Models;
+using Meedu.Models.Auth;
 using Meedu.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +36,15 @@ namespace Meedu.Controllers
         public async Task<ActionResult<UserInfoDto>> GetUserInfo()
         {
             return Ok(await accountService.GetUserInfo());
+        }
+
+
+        [HttpPut("updateUserData")]
+        [Authorize]
+        public async Task<ActionResult<UserInfoDto>> UpdateUserData(UpdateUserDataRequest request)
+        {
+            await accountService.UpdateUserDataAsync(request);
+            return Ok();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Meedu.Entities;
 using Meedu.Exceptions;
+using Meedu.Models;
 using Meedu.Models.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,15 +16,16 @@ namespace Meedu.Services
         void RegisterUser(RegisterUserDto dto);
         string GenerateJwtToken(LoginUserDto loginDto);
         Task<UserInfoDto> GetUserInfo();
+        Task<UserInfoDto> UpdateUserDataAsync(UpdateUserDataRequest request);
     }
 
     public class AccountService : IAccountService
     {
-        private readonly MeeduDbContext dbContext;
+        private readonly MeeduDbContext _dbContext;
         private readonly IPasswordHasher<User> passwordHasher;
         private readonly ILogger<AccountService> logger;
         private readonly AuthSettings authSettings;
-        private readonly IUserContextService userContextService;
+        private readonly IUserContextService _userContextService;
 
         public AccountService(MeeduDbContext dbContext, 
             IPasswordHasher<User> passwordHasher, 
@@ -31,11 +33,11 @@ namespace Meedu.Services
             AuthSettings authSettings, 
             IUserContextService userContextService)
         {
-            this.dbContext = dbContext;
+            this._dbContext = dbContext;
             this.passwordHasher = passwordHasher;
             this.logger = logger;
             this.authSettings = authSettings;
-            this.userContextService = userContextService;
+            this._userContextService = userContextService;
         }
 
         public void RegisterUser(RegisterUserDto dto)
@@ -53,13 +55,13 @@ namespace Meedu.Services
             var hashedPassword = passwordHasher.HashPassword(newUser, dto.Password);
             newUser.PasswordHash = hashedPassword;
 
-            dbContext.Users.Add(newUser);
-            dbContext.SaveChanges();
+            _dbContext.Users.Add(newUser);
+            _dbContext.SaveChanges();
         }
 
         public string GenerateJwtToken(LoginUserDto loginDto)
         {
-            var user = dbContext.Users
+            var user = _dbContext.Users
                 .Include(x => x.Role)
                 .FirstOrDefault(x => x.Email == loginDto.Email);
 
@@ -94,12 +96,12 @@ namespace Meedu.Services
 
         public async Task<UserInfoDto> GetUserInfo()
         {
-            var userId = userContextService.GetUserId;
+            var userId = _userContextService.GetUserId;
 
             if(userId is null)
                 throw new BadRequestException("User does not exist");
 
-            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
             if (userId is null)
                 throw new BadRequestException("User does not exist");
@@ -112,6 +114,30 @@ namespace Meedu.Services
                 DateOfBirth = user.DateOfBirth,
                 LastName = user.LastName,
                 PhoneNumber = user.PhoneNumber,
+                RoleId = user.RoleId
+            };
+        }
+
+        public async Task<UserInfoDto> UpdateUserDataAsync(UpdateUserDataRequest request)
+        {
+            var userId = _userContextService.GetUserId;
+
+            var user = await _dbContext.Users
+                .FirstOrDefaultAsync(x => x.Id == userId)
+                ?? throw new BadRequestException("User does not exist");
+
+            user.PhoneNumber = request.PhoneNumber;
+
+            await _dbContext.SaveChangesAsync();
+
+            return new UserInfoDto
+            {
+                Id = user.Id,
+                PhoneNumber = user.PhoneNumber,
+                DateOfBirth = user.DateOfBirth,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 RoleId = user.RoleId
             };
         }
