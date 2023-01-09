@@ -262,27 +262,8 @@ namespace Meedu.Services
                 };
                 foreach (var r in reservations.Where(x => x.ReservationDate == date))
                 {
-                    var userInfo = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy;
-
-                    reservation.DayReservations.Add(new UserReservationDataDto
-                    {
-                        AvailableFrom = r.ScheduleTimespan.AvailableFrom.ToString("HH:mm"),
-                        AvailableTo = r.ScheduleTimespan.AvailableTo.ToString("HH:mm"),
-                        isOnline = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.OnlineLessonsPossible,
-                        LessonTitle = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.LessonTitle,
-                        Place = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Place,
-                        ReservationId = r.Id.ToString(),
-                        ScheduleId = r.ScheduleTimespan.DaySchedule.Id.ToString(),
-                        TimespanId = r.ScheduleTimespan.Id.ToString(),
-                        lessonId = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Id.ToString(),
-                        User = new DtoNameLastnameId
-                        {
-                            Id = userInfo.Id.ToString(),
-                            FirstName = userInfo.FirstName,
-                            LastName = userInfo.LastName,
-                            PhoneNumber = userInfo.PhoneNumber
-                        }
-                    });
+                    reservation.DayReservations
+                        .Add(CreateUserReservationDto(r, r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy));
                 }
                 userLessonReservationsList.Add(reservation);
             }
@@ -302,7 +283,7 @@ namespace Meedu.Services
                 .ThenInclude(x => x.DaySchedule)
                 .ThenInclude(x => x.PrivateLessonOffer)
                 .ThenInclude(x => x.CreatedBy)
-                .Where(x => x.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy.Id == userId)
+                .Where(x => x.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy.Id == userId && x.ReservationDate >= DateTime.Today)
                 .ToListAsync();
 
             var dates = reservations
@@ -322,25 +303,7 @@ namespace Meedu.Services
                 };
                 foreach (var r in reservations.Where(x => x.ReservationDate == date))
                 {
-                    reservation.DayReservations.Add(new UserReservationDataDto
-                    {
-                        AvailableFrom = r.ScheduleTimespan.AvailableFrom.ToString("HH:mm"),
-                        AvailableTo = r.ScheduleTimespan.AvailableTo.ToString("HH:mm"),
-                        isOnline = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.OnlineLessonsPossible,
-                        LessonTitle = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.LessonTitle,
-                        Place = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Place,
-                        ReservationId = r.Id.ToString(),
-                        ScheduleId = r.ScheduleTimespan.DaySchedule.Id.ToString(),
-                        TimespanId = r.ScheduleTimespan.Id.ToString(),
-                        lessonId = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Id.ToString(),
-                        User = new DtoNameLastnameId
-                        {
-                            Id = r.ReservedBy.Id.ToString(),
-                            FirstName = r.ReservedBy.FirstName,
-                            LastName = r.ReservedBy.LastName,
-                            PhoneNumber = r.ReservedBy.PhoneNumber
-                        }
-                    });
+                    reservation.DayReservations.Add(CreateUserReservationDto(r, r.ReservedBy));
                 }
                 userLessonReservationsList.Add(reservation);
             }
@@ -348,6 +311,34 @@ namespace Meedu.Services
                 .ForEach(x => x.DayReservations
                 .Sort((x, y) => Int32.Parse(x.AvailableFrom.Split(":")[0])));
             return userLessonReservationsList.OrderBy(x => x.ReservationDate).ToList();
+        }
+
+        private UserReservationDataDto CreateUserReservationDto(LessonReservation r, User userInfo)
+        {
+            return new UserReservationDataDto
+            {
+                AvailableFrom = r.ScheduleTimespan.AvailableFrom.ToString("HH:mm"),
+                AvailableTo = r.ScheduleTimespan.AvailableTo.ToString("HH:mm"),
+                isOnline = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.OnlineLessonsPossible,
+                LessonTitle = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.LessonTitle,
+                Place = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Place,
+                ReservationId = r.Id.ToString(),
+                ScheduleId = r.ScheduleTimespan.DaySchedule.Id.ToString(),
+                TimespanId = r.ScheduleTimespan.Id.ToString(),
+                lessonId = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Id.ToString(),
+                User = SetUserInfo(userInfo)
+            };
+        }
+
+        private DtoNameLastnameId SetUserInfo(User userInfo)
+        {
+            return new DtoNameLastnameId
+            {
+                Id = userInfo.Id.ToString(),
+                FirstName = userInfo.FirstName,
+                LastName = userInfo.LastName,
+                PhoneNumber = userInfo.PhoneNumber
+            };
         }
 
         private async Task<Subject> CreateNewSubjectIfNotExists(String SubjectName)
