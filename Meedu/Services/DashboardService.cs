@@ -77,24 +77,8 @@ namespace Meedu.Services
                     && x.ReservationDate == DateTime.Today)
                 .ToListAsync();
 
-            var reservations = new List<UserReservationDataDto>();
+            var reservations = todaysLessons.Select(x => CreateUserReservationDto(x, x.ReservedBy)).ToList();
 
-            foreach (var lesson in todaysLessons)
-            {
-                reservations.Add(new UserReservationDataDto
-                {
-                    AvailableFrom = lesson.ScheduleTimespan.AvailableFrom.ToString("HH:mm"),
-                    AvailableTo = lesson.ScheduleTimespan.AvailableTo.ToString("HH:mm"),
-                    isOnline = lesson.ScheduleTimespan.DaySchedule.PrivateLessonOffer.OnlineLessonsPossible,
-                    LessonTitle = lesson.ScheduleTimespan.DaySchedule.PrivateLessonOffer.LessonTitle,
-                    lessonId = lesson.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Id.ToString(),
-                    Place = lesson.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Place,
-                    ReservationId = lesson.Id.ToString(),
-                    ScheduleId = lesson.ScheduleTimespan.DaySchedule.Id.ToString(),
-                    TimespanId = lesson.ScheduleTimespan.Id.ToString(),
-                    User = SetUserInfo(lesson.ReservedBy)
-                });
-            }
             reservations
                 .Sort((x, y) => Int32.Parse(x.AvailableFrom.Split(":")[0]));
             return reservations;
@@ -124,6 +108,23 @@ namespace Meedu.Services
                 LastName = x.LastName,
                 PhoneNumber = x.PhoneNumber
             }).ToList();
+        }
+
+        private UserReservationDataDto CreateUserReservationDto(LessonReservation r, User userInfo)
+        {
+            return new UserReservationDataDto
+            {
+                AvailableFrom = r.ScheduleTimespan.AvailableFrom.ToString("HH:mm"),
+                AvailableTo = r.ScheduleTimespan.AvailableTo.ToString("HH:mm"),
+                isOnline = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.OnlineLessonsPossible,
+                LessonTitle = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.LessonTitle,
+                Place = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Place,
+                ReservationId = r.Id.ToString(),
+                ScheduleId = r.ScheduleTimespan.DaySchedule.Id.ToString(),
+                TimespanId = r.ScheduleTimespan.Id.ToString(),
+                lessonId = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Id.ToString(),
+                User = SetUserInfo(userInfo)
+            };
         }
 
         private DtoNameLastnameId SetUserInfo(User userInfo)

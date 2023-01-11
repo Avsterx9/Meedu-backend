@@ -260,11 +260,12 @@ namespace Meedu.Services
                     DayReservations = new List<UserReservationDataDto>(),
                     Day = (int)date.DayOfWeek == 0 ? 6 : (int)date.DayOfWeek - 1
                 };
-                foreach (var r in reservations.Where(x => x.ReservationDate == date))
-                {
-                    reservation.DayReservations
-                        .Add(CreateUserReservationDto(r, r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy));
-                }
+
+                reservation.DayReservations = reservations
+                    .Where(x => x.ReservationDate == date)
+                    .Select(x => CreateUserReservationDto(x, x.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy))
+                    .ToList();
+
                 userLessonReservationsList.Add(reservation);
             }
             userLessonReservationsList
@@ -301,10 +302,11 @@ namespace Meedu.Services
                     DayReservations = new List<UserReservationDataDto>(),
                     Day = (int)date.DayOfWeek == 0 ? 6 : (int)date.DayOfWeek - 1
                 };
-                foreach (var r in reservations.Where(x => x.ReservationDate == date))
-                {
-                    reservation.DayReservations.Add(CreateUserReservationDto(r, r.ReservedBy));
-                }
+                reservation.DayReservations = reservations
+                    .Where(x => x.ReservationDate == date)
+                    .Select(x => CreateUserReservationDto(x, x.ReservedBy))
+                    .ToList();
+
                 userLessonReservationsList.Add(reservation);
             }
             userLessonReservationsList
