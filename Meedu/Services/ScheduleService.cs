@@ -40,6 +40,7 @@ namespace Meedu.Services
             var userId = _userContextService.GetUserId;
 
             var schedule = await _dbContext.DaySchedules
+                .Include(x => x.ScheduleTimestamps)
                 .FirstOrDefaultAsync(ds => ds.User.Id == userId && ds.Subject.Name == dto.Subject.Name);
 
             var lessonOffer = await _dbContext.PrivateLessonOffers
@@ -47,13 +48,13 @@ namespace Meedu.Services
                 ?? throw new BadRequestException("LessonOfferNotExists");
 
             Subject subject = await CreateNewSubjectIfNotExists(dto.Subject.Name);
-            var timestamps = new List<ScheduleTimespan>();
+            var timespans = new List<ScheduleTimespan>();
 
             if (dto.ScheduleTimespans != null)
             {
                 foreach (var timespan in dto.ScheduleTimespans)
                 {
-                    timestamps.Add(new ScheduleTimespan()
+                    timespans.Add(new ScheduleTimespan()
                     {
                         AvailableFrom = DateTime.Parse(timespan.AvailableFrom),
                         AvailableTo = DateTime.Parse(timespan.AvailableTo),
@@ -62,17 +63,27 @@ namespace Meedu.Services
                 }
             }
 
-            schedule = new DaySchedule()
+            if (schedule != null)
             {
-                DayOfWeek = dto.DayOfWeek,
-                Subject = subject,
-                Created = DateTime.Now,
-                User = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId),
-                ScheduleTimestamps = timestamps,
-                PrivateLessonOffer = lessonOffer
-            };
-
-            await _dbContext.AddAsync(schedule);
+                foreach(var t in timespans)
+                {
+                    if (!schedule.ScheduleTimestamps.Any(x => TimeOnly.FromDateTime(x.AvailableFrom) == TimeOnly.FromDateTime(t.AvailableFrom)))
+                        schedule.ScheduleTimestamps.Add(t);
+                }
+            } 
+            else
+            {
+                schedule = new DaySchedule()
+                {
+                    DayOfWeek = dto.DayOfWeek,
+                    Subject = subject,
+                    Created = DateTime.Now,
+                    User = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId),
+                    ScheduleTimestamps = timespans,
+                    PrivateLessonOffer = lessonOffer
+                };
+                await _dbContext.AddAsync(schedule);
+            }
             await _dbContext.SaveChangesAsync();
         }
 
@@ -153,6 +164,8 @@ namespace Meedu.Services
 
         public async Task AddReservationAsync(LessonReservationDto dto, string scheduleId, string timespanId)
         {
+            var userId = _userContextService.GetUserId;
+
             var timespanGuid = ValidateGuid(timespanId);
             var scheduleGuid = ValidateGuid(scheduleId);
 
@@ -168,6 +181,15 @@ namespace Meedu.Services
 
             if (timespan.LessonReservations == null)
                 timespan.LessonReservations = new List<LessonReservation>();
+
+            var existingReservations = await _dbContext.LessonReservations
+                .Include(x => x.ReservedBy)
+                .Include(x => x.ScheduleTimespan)
+                .Where(x => x.ReservedBy.Id == userId && x.ReservationDate == dto.ReservationDate)
+                .ToListAsync();
+
+            if(existingReservations.Any(x => TimeOnly.FromDateTime(x.ScheduleTimespan.AvailableFrom) == TimeOnly.FromDateTime(timespan.AvailableFrom)))
+                throw new BadRequestException("YouHaveLessonReservedAtThisTime");
 
             if(timespan.LessonReservations.Any(r => r.ReservationDate == dto.ReservationDate))
                 throw new BadRequestException("DateIsAlreadyReserved");
