@@ -14,9 +14,9 @@ namespace Meedu.Services
         Task<List<PrivateLessonOfferDto>> GetLessonOffersByUserAsync();
         Task DeleteLessonOfferAsync(string id);
         Task<PrivateLessonOfferDto> GetByIdAsync(string id);
-        Task UpdateLessonOffer(PrivateLessonOfferDto dto);
+        Task UpdateLessonOfferAsync(PrivateLessonOfferDto dto);
         Task<List<PrivateLessonOfferDto>> SimpleSearchByNameAsync(string searchValue);
-        Task<List<PrivateLessonOfferDto>> AdvancedSearch(LessonOfferAdvancedSearchDto dto);
+        Task<List<PrivateLessonOfferDto>> AdvancedSearchAsync(LessonOfferAdvancedSearchDto dto);
     }
 
     public class PrivateLessonService : IPrivateLessonService
@@ -52,7 +52,7 @@ namespace Meedu.Services
                 {
                     City = dto.City,
                     Description = dto.Description,
-                    LessonTitle = dto.LessonTitle != null ? dto.LessonTitle : String.Empty,
+                    LessonTitle = dto.LessonTitle != null ? dto.LessonTitle : string.Empty,
                     OnlineLessonsPossible = dto.isOnline,
                     Place = dto.Place,
                     Price = dto.Price,
@@ -73,8 +73,7 @@ namespace Meedu.Services
                 .Include(s => s.CreatedBy)
                 .ToListAsync();
 
-            var lessonOfferDtoList = lessonOffers.Select(o => CreateLessonOfferDto(o)).ToList();
-            return lessonOfferDtoList;
+            return lessonOffers.Select(o => CreateLessonOfferDto(o)).ToList();
         }
 
         public async Task<List<PrivateLessonOfferDto>> GetLessonOffersByUserAsync()
@@ -120,7 +119,7 @@ namespace Meedu.Services
             return dto;
         }
 
-        public async Task UpdateLessonOffer(PrivateLessonOfferDto dto)
+        public async Task UpdateLessonOfferAsync(PrivateLessonOfferDto dto)
         {
             if(dto.Id == null)
                 throw new ArgumentNullException("OfferIdIsNull");
@@ -166,7 +165,7 @@ namespace Meedu.Services
             return lessons.Select(o => CreateLessonOfferDto(o)).ToList();
         }
 
-        public async Task<List<PrivateLessonOfferDto>> AdvancedSearch(LessonOfferAdvancedSearchDto dto)
+        public async Task<List<PrivateLessonOfferDto>> AdvancedSearchAsync(LessonOfferAdvancedSearchDto dto)
         {
             var lessons = await dbContext.PrivateLessonOffers
                 .Include(o => o.CreatedBy)

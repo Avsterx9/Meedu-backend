@@ -127,6 +127,9 @@ namespace Meedu.Services
                 ?? throw new BadRequestException("User does not exist");
 
             user.PhoneNumber = request.PhoneNumber;
+            user.FirstName = request.FirstName;
+            user.LastName = request.LastName;
+            user.DateOfBirth = request.DateOfBirth;
 
             await _dbContext.SaveChangesAsync();
 

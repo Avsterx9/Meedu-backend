@@ -56,7 +56,7 @@ namespace Meedu.Controllers
         [Authorize]
         public async Task<ActionResult> GetById([FromBody] PrivateLessonOfferDto dto)
         {
-            await privateLessonService.UpdateLessonOffer(dto);
+            await privateLessonService.UpdateLessonOfferAsync(dto);
             return Ok();
         }
 
@@ -72,7 +72,7 @@ namespace Meedu.Controllers
         [HttpPost("advancedSearch")]
         public async Task<ActionResult<List<PrivateLessonOfferDto>>> AdvancedSearch(LessonOfferAdvancedSearchDto dto)
         {
-            return Ok(await privateLessonService.AdvancedSearch(dto));
+            return Ok(await privateLessonService.AdvancedSearchAsync(dto));
         }
     }
 }

@@ -31,16 +31,5 @@ namespace Meedu.Entities
                 .Property(x => x.Name)
                 .IsRequired();
         }
-
-        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        //{
-        //    var configuration = new ConfigurationBuilder()
-        //        .SetBasePath(Directory.GetCurrentDirectory())
-        //        .AddJsonFile("appsettings.json")
-        //        .Build();
-
-        //    var connectionString = configuration.GetConnectionString("MeeduConnectionString");
-        //    optionsBuilder.UseSqlServer(connectionString);
-        //}
     }
 }

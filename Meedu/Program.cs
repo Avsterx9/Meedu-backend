@@ -57,8 +57,8 @@ builder.Services.AddSwaggerGen(c =>
     c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
     {
         Description = @"JWT Authorization header using the Bearer scheme. 
-                      Enter 'Bearer' [space] and then your token in the text input below.
-                      Example: 'Bearer 12345abcdef'",
+                      Enter your token in the text input below.
+                      Example: '12345abcdef'",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
@@ -66,22 +66,22 @@ builder.Services.AddSwaggerGen(c =>
         BearerFormat = "JWT"
     });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    {
         {
-            {
-              new OpenApiSecurityScheme
-              {
+            new OpenApiSecurityScheme
+                {
                 Reference = new OpenApiReference
-                  {
+                    {
                     Type = ReferenceType.SecurityScheme,
                     Id = "Bearer"
-                  },
-                  Scheme = "oauth2",
-                  Name = "Bearer",
-                  In = ParameterLocation.Header,
+                    },
+                    Scheme = "oauth2",
+                    Name = "Bearer",
+                    In = ParameterLocation.Header,
                 },
-                new List<string>()
-              }
-        });
+            new List<string>()
+        }
+    });
     c.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 
