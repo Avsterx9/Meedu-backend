@@ -1,4 +1,5 @@
 ﻿using Meedu.Entities.Enums;
+using Meedu.Models.Auth;
 
 namespace Meedu.Models.PrivateLessonOffer
 {

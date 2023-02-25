@@ -5,6 +5,8 @@ using Meedu.Models.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -17,6 +19,7 @@ namespace Meedu.Services
         string GenerateJwtToken(LoginUserDto loginDto);
         Task<UserInfoDto> GetUserInfo();
         Task<UserInfoDto> UpdateUserDataAsync(UpdateUserDataRequest request);
+        Task SetUserImageAsync(IFormFile file);
     }
 
     public class AccountService : IAccountService
@@ -101,7 +104,9 @@ namespace Meedu.Services
             if(userId is null)
                 throw new BadRequestException("User does not exist");
 
-            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            var user = await _dbContext.Users
+                .Include(x => x.Image)
+                .FirstOrDefaultAsync(u => u.Id == userId);
 
             if (userId is null)
                 throw new BadRequestException("User does not exist");
@@ -114,7 +119,12 @@ namespace Meedu.Services
                 DateOfBirth = user.DateOfBirth,
                 LastName = user.LastName,
                 PhoneNumber = user.PhoneNumber,
-                RoleId = user.RoleId
+                RoleId = user.RoleId,
+                ImageDto = new ImageDto
+                {
+                    ContentType = user.Image == null ? "" : user.Image.ContentType,
+                    Data = user.Image == null ? "" : Convert.ToBase64String(user.Image.Data)
+                }
             };
         }
 
@@ -123,6 +133,7 @@ namespace Meedu.Services
             var userId = _userContextService.GetUserId;
 
             var user = await _dbContext.Users
+                .Include(x => x.Image)
                 .FirstOrDefaultAsync(x => x.Id == userId)
                 ?? throw new BadRequestException("User does not exist");
 
@@ -143,6 +154,38 @@ namespace Meedu.Services
                 LastName = user.LastName,
                 RoleId = user.RoleId
             };
+        }
+
+        public async Task SetUserImageAsync(IFormFile file)
+        {
+            var userId = _userContextService.GetUserId;
+
+            var user = await _dbContext.Users
+                .Include(x => x.Image)
+                .FirstOrDefaultAsync(x => x.Id == userId)
+                ?? throw new BadRequestException("");
+
+            if (file == null || file.Length == 0)
+                throw new BadRequestException("No file selected.");
+
+            byte[] data;
+            using (var stream = new MemoryStream())
+            {
+                Bitmap bitmap = new Bitmap(file.OpenReadStream());
+                bitmap.Save(stream, ImageFormat.Jpeg);
+                data = stream.ToArray();
+            }
+
+            var image = new Meedu.Entities.Image
+            {
+                ContentType = file.ContentType,
+                Data = data
+            };
+
+            user.Image = image;
+
+            _dbContext.Images.Add(image);
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

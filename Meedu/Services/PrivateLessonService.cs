@@ -2,6 +2,7 @@
 using Meedu.Entities.Enums;
 using Meedu.Exceptions;
 using Meedu.Models;
+using Meedu.Models.Auth;
 using Meedu.Models.PrivateLessonOffer;
 using Microsoft.EntityFrameworkCore;
 
@@ -71,6 +72,7 @@ namespace Meedu.Services
             var lessonOffers = await dbContext.PrivateLessonOffers
                 .Include(s => s.Subject)
                 .Include(s => s.CreatedBy)
+                .ThenInclude(x => x.Image)
                 .ToListAsync();
 
             return lessonOffers.Select(o => CreateLessonOfferDto(o)).ToList();
@@ -109,6 +111,7 @@ namespace Meedu.Services
         {
             var lesson = await dbContext.PrivateLessonOffers
                 .Include(x => x.CreatedBy)
+                .ThenInclude(x => x.Image)
                 .Include(x => x.Subject)
                 .FirstOrDefaultAsync(o => o.Id == new Guid(id));
 
@@ -221,7 +224,12 @@ namespace Meedu.Services
                     Id = offer.CreatedBy.Id.ToString(),
                     FirstName = offer.CreatedBy.FirstName,
                     LastName = offer.CreatedBy.LastName,
-                    PhoneNumber = offer.CreatedBy.PhoneNumber
+                    PhoneNumber = offer.CreatedBy.PhoneNumber,
+                    ImageDto = new ImageDto() 
+                    {
+                        ContentType = offer.CreatedBy.Image == null ? "" : offer.CreatedBy.Image.ContentType,
+                        Data = offer.CreatedBy.Image == null ? "" : Convert.ToBase64String(offer.CreatedBy.Image.Data)
+                    }
                 }
             };
         }

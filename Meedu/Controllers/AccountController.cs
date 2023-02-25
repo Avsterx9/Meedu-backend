@@ -46,5 +46,13 @@ namespace Meedu.Controllers
             await accountService.UpdateUserDataAsync(request);
             return Ok();
         }
+
+        [HttpPost("setUserImage")]
+        [Authorize]
+        public async Task<ActionResult> SetUserImage(IFormFile file)
+        {
+            await accountService.SetUserImageAsync(file);
+            return Ok();
+        }
     }
 }

@@ -11,6 +11,7 @@ namespace Meedu.Entities
         public DbSet<DaySchedule> DaySchedules { get; set; }
         public DbSet<ScheduleTimespan> ScheduleTimespans { get; set; }
         public DbSet<LessonReservation> LessonReservations { get; set; }
+        public DbSet<Image> Images { get; set; }
 
         public MeeduDbContext(DbContextOptions<MeeduDbContext> options) : base(options)
         {
