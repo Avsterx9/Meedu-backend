@@ -53,6 +53,7 @@ namespace Meedu.Services
                 LastName = dto.LastName,
                 PhoneNumber = dto.PhoneNumber,
                 RoleId = dto.RoleId,
+                Image = null
             };
 
             var hashedPassword = passwordHasher.HashPassword(newUser, dto.Password);

@@ -102,10 +102,25 @@ namespace Meedu.Services
             if (lessonOffer == null)
                 throw new BadRequestException("OfferNotFound");
 
+            var schedules = await dbContext.DaySchedules
+                .Include(x => x.ScheduleTimestamps)
+                .ThenInclude(x => x.LessonReservations)
+                .Where(x => x.PrivateLessonOffer.Id == lessonOffer.Id)
+                .ToListAsync();
+
+            foreach(var schedule in schedules)
+            {
+                foreach(var timestamp in schedule.ScheduleTimestamps)
+                {
+                    dbContext.LessonReservations.RemoveRange(timestamp.LessonReservations);
+                }
+                dbContext.RemoveRange(schedule.ScheduleTimestamps);
+            }
+
+            dbContext.DaySchedules.RemoveRange(schedules);
             dbContext.PrivateLessonOffers.Remove(lessonOffer);
             await dbContext.SaveChangesAsync();
         }
-
 
         public async Task<PrivateLessonOfferDto> GetByIdAsync(string id)
         {
@@ -159,6 +174,7 @@ namespace Meedu.Services
         {
             var lessons = await dbContext.PrivateLessonOffers
                 .Include(o => o.CreatedBy)
+                .ThenInclude(x => x.Image)
                 .Include(o => o.Subject)
                 .ToListAsync();
 
@@ -172,6 +188,7 @@ namespace Meedu.Services
         {
             var lessons = await dbContext.PrivateLessonOffers
                 .Include(o => o.CreatedBy)
+                .ThenInclude(x => x.Image)
                 .Include(o => o.Subject)
                 .ToListAsync();
 

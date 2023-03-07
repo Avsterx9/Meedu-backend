@@ -41,7 +41,10 @@ namespace Meedu.Services
 
             var schedule = await _dbContext.DaySchedules
                 .Include(x => x.ScheduleTimestamps)
-                .FirstOrDefaultAsync(ds => ds.User.Id == userId && ds.Subject.Name == dto.Subject.Name);
+                .FirstOrDefaultAsync(ds => ds.User.Id == userId &&
+                ds.Subject.Name == dto.Subject.Name &&
+                ds.DayOfWeek == dto.DayOfWeek && 
+                ds.PrivateLessonOffer.Id == new Guid(dto.lessonOfferId));
 
             var lessonOffer = await _dbContext.PrivateLessonOffers
                 .FirstOrDefaultAsync(x => x.Id == new Guid(dto.lessonOfferId))
