@@ -20,7 +20,7 @@ namespace Meedu.Controllers
         [HttpPost("register")]
         public ActionResult RegisterUser([FromBody] RegisterUserDto registerUserDto)
         {
-            accountService.RegisterUser(registerUserDto);
+            accountService.RegisterUserAsync(registerUserDto);
             return Ok();
         }
 
@@ -35,7 +35,7 @@ namespace Meedu.Controllers
         [Authorize]
         public async Task<ActionResult<UserInfoDto>> GetUserInfo()
         {
-            return Ok(await accountService.GetUserInfo());
+            return Ok(await accountService.GetUserInfoAsync());
         }
 
 

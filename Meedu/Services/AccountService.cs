@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Meedu.Entities;
 using Meedu.Exceptions;
+using Meedu.Helpers;
 using Meedu.Models;
 using Meedu.Models.Auth;
 using Microsoft.AspNetCore.Identity;
@@ -38,28 +39,27 @@ namespace Meedu.Services
             _mapper = mapper;
         }
 
-        public void RegisterUser(RegisterUserDto dto)
+        public async Task RegisterUserAsync(RegisterUserDto dto)
         {
             var newUser = _mapper.Map<User>(dto);
             var hashedPassword = _passwordHasher.HashPassword(newUser, dto.Password);
             newUser.PasswordHash = hashedPassword;
 
-            _context.Users.Add(newUser);
-            _context.SaveChanges();
+            await _context.Users.AddAsync(newUser);
+            await _context.SaveChangesAsync();
         }
 
-        public string GenerateJwtToken(LoginUserDto loginDto)
+        public async Task<string> GenerateJwtTokenAsync(LoginUserDto loginDto)
         {
-            var user = _context.Users
+            var user = await _context.Users
                 .Include(x => x.Role)
-                .FirstOrDefault(x => x.Email == loginDto.Email);
-
-            if (user is null)
-                throw new BadRequestException("Invalid username or password");
+                .FirstOrDefaultAsync(x => x.Email == loginDto.Email)
+                ?? throw new BadRequestException(ExceptionMessages.InvalidUsernameOrPassword);
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password);
+
             if (result == PasswordVerificationResult.Failed)
-                throw new BadRequestException("Invalid username or password");
+                throw new BadRequestException(ExceptionMessages.InvalidUsernameOrPassword);
 
             var claims = new List<Claim>()
             {
@@ -83,19 +83,14 @@ namespace Meedu.Services
             return tokenHandler.WriteToken(token);
         }
 
-        public async Task<UserInfoDto> GetUserInfo()
+        public async Task<UserInfoDto> GetUserInfoAsync()
         {
-            var userId = _userContextService.GetUserId;
-
-            if(userId is null)
-                throw new BadRequestException("User does not exist");
+            var userId = _userContextService.GetUserIdFromToken();
 
             var user = await _context.Users
                 .Include(x => x.Image)
-                .FirstOrDefaultAsync(u => u.Id == userId);
-
-            if (userId is null)
-                throw new BadRequestException("User does not exist");
+                .FirstOrDefaultAsync(u => u.Id == userId)
+                ?? throw new NotFoundException(ExceptionMessages.UserNotFound);
 
             return new UserInfoDto()
             {
@@ -109,7 +104,7 @@ namespace Meedu.Services
                 ImageDto = new ImageDto
                 {
                     ContentType = user.Image == null ? "" : user.Image.ContentType,
-                    Data = user.Image == null ? "" : Convert.ToBase64String(user.Image.Data)
+                    Data = user.Image1 == null ? "" : Convert.ToBase64String(user.Image.Data)
                 }
             };
         }

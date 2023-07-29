@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using Meedu.Exceptions;
+using System.Security.Claims;
 
 namespace Meedu.Services
 {
@@ -6,19 +7,28 @@ namespace Meedu.Services
     {
         ClaimsPrincipal User { get; }
         Guid? GetUserId { get; }
+        Guid GetUserIdFromToken();
     }
 
     public class UserContextService : IUserContextService
     {
-        private readonly IHttpContextAccessor httpContextAccessor;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public UserContextService(IHttpContextAccessor httpContextAccessor)
         {
-            this.httpContextAccessor = httpContextAccessor;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        public ClaimsPrincipal User => httpContextAccessor.HttpContext?.User;
+        public ClaimsPrincipal User => _httpContextAccessor.HttpContext?.User;
         public Guid? GetUserId =>
             User is null ? null : (Guid?)new Guid(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+        public Guid GetUserIdFromToken()
+        {
+            if (User == null)
+                throw new BadRequestException("Missing user info");
+
+            return new Guid(User.FindFirst(ClaimTypes.Name).Value);
+        }
     }
 }

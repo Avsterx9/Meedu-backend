@@ -5,9 +5,9 @@ namespace Meedu.Services;
 
 public interface IAccountService
 {
-    void RegisterUser(RegisterUserDto dto);
-    string GenerateJwtToken(LoginUserDto loginDto);
-    Task<UserInfoDto> GetUserInfo();
+    Task RegisterUserAsync(RegisterUserDto dto);
+    Task<string> GenerateJwtTokenAsync(LoginUserDto loginDto);
+    Task<UserInfoDto> GetUserInfoAsync();
     Task<UserInfoDto> UpdateUserDataAsync(UpdateUserDataRequest request);
     Task SetUserImageAsync(IFormFile file);
 }
