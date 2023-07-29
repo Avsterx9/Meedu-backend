@@ -16,10 +16,10 @@ namespace Meedu.Services
 {
     public class AccountService : IAccountService
     {
-        private readonly MeeduDbContext _dbContext;
-        private readonly IPasswordHasher<User> passwordHasher;
-        private readonly ILogger<AccountService> logger;
-        private readonly AuthSettings authSettings;
+        private readonly MeeduDbContext _context;
+        private readonly IPasswordHasher<User> _passwordHasher;
+        private readonly ILogger<AccountService> _logger;
+        private readonly AuthSettings _authSettings;
         private readonly IUserContextService _userContextService;
         private readonly IMapper _mapper;
 
@@ -30,34 +30,34 @@ namespace Meedu.Services
             IUserContextService userContextService,
             IMapper mapper)
         {
-            this._dbContext = dbContext;
-            this.passwordHasher = passwordHasher;
-            this.logger = logger;
-            this.authSettings = authSettings;
-            this._userContextService = userContextService;
+            _context = dbContext;
+            _passwordHasher = passwordHasher;
+            _logger = logger;
+            _authSettings = authSettings;
+            _userContextService = userContextService;
             _mapper = mapper;
         }
 
         public void RegisterUser(RegisterUserDto dto)
         {
             var newUser = _mapper.Map<User>(dto);
-            var hashedPassword = passwordHasher.HashPassword(newUser, dto.Password);
+            var hashedPassword = _passwordHasher.HashPassword(newUser, dto.Password);
             newUser.PasswordHash = hashedPassword;
 
-            _dbContext.Users.Add(newUser);
-            _dbContext.SaveChanges();
+            _context.Users.Add(newUser);
+            _context.SaveChanges();
         }
 
         public string GenerateJwtToken(LoginUserDto loginDto)
         {
-            var user = _dbContext.Users
+            var user = _context.Users
                 .Include(x => x.Role)
                 .FirstOrDefault(x => x.Email == loginDto.Email);
 
             if (user is null)
                 throw new BadRequestException("Invalid username or password");
 
-            var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password);
+            var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password);
             if (result == PasswordVerificationResult.Failed)
                 throw new BadRequestException("Invalid username or password");
 
@@ -69,12 +69,12 @@ namespace Meedu.Services
                 new Claim("DateOfBirth", user.DateOfBirth.Value.ToString("dd-MM-yyyy"))
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authSettings.JwtKey));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authSettings.JwtKey));
             var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(authSettings.JwtExpireDays);
+            var expires = DateTime.Now.AddDays(_authSettings.JwtExpireDays);
 
-            var token = new JwtSecurityToken(authSettings.JwtIssuer,
-                authSettings.JwtIssuer,
+            var token = new JwtSecurityToken(_authSettings.JwtIssuer,
+                _authSettings.JwtIssuer,
                 claims,
                 expires: expires,
                 signingCredentials: cred);
@@ -90,7 +90,7 @@ namespace Meedu.Services
             if(userId is null)
                 throw new BadRequestException("User does not exist");
 
-            var user = await _dbContext.Users
+            var user = await _context.Users
                 .Include(x => x.Image)
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
@@ -118,7 +118,7 @@ namespace Meedu.Services
         {
             var userId = _userContextService.GetUserId;
 
-            var user = await _dbContext.Users
+            var user = await _context.Users
                 .Include(x => x.Image)
                 .FirstOrDefaultAsync(x => x.Id == userId)
                 ?? throw new BadRequestException("User does not exist");
@@ -128,7 +128,7 @@ namespace Meedu.Services
             user.LastName = request.LastName;
             user.DateOfBirth = request.DateOfBirth;
 
-            await _dbContext.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
             return new UserInfoDto
             {
@@ -146,7 +146,7 @@ namespace Meedu.Services
         {
             var userId = _userContextService.GetUserId;
 
-            var user = await _dbContext.Users
+            var user = await _context.Users
                 .Include(x => x.Image)
                 .FirstOrDefaultAsync(x => x.Id == userId)
                 ?? throw new BadRequestException("");
@@ -170,8 +170,8 @@ namespace Meedu.Services
 
             user.Image = image;
 
-            _dbContext.Images.Add(image);
-            await _dbContext.SaveChangesAsync();
+            _context.Images.Add(image);
+            await _context.SaveChangesAsync();
         }
     }
 }
