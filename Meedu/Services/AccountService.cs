@@ -97,12 +97,12 @@ namespace Meedu.Services
 
         public async Task<UserInfoDto> UpdateUserDataAsync(UpdateUserDataRequest request)
         {
-            var userId = _userContextService.GetUserId;
+            var userId = _userContextService.GetUserIdFromToken();
 
             var user = await _context.Users
                 .Include(x => x.Image)
                 .FirstOrDefaultAsync(x => x.Id == userId)
-                ?? throw new BadRequestException("User does not exist");
+                ?? throw new NotFoundException(ExceptionMessages.UserNotFound);
 
             user.PhoneNumber = request.PhoneNumber;
             user.FirstName = request.FirstName;
@@ -111,31 +111,23 @@ namespace Meedu.Services
 
             await _context.SaveChangesAsync();
 
-            return new UserInfoDto
-            {
-                Id = user.Id,
-                PhoneNumber = user.PhoneNumber,
-                DateOfBirth = user.DateOfBirth,
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                RoleId = user.RoleId
-            };
+            return _mapper.Map<UserInfoDto>(user);
         }
 
         public async Task SetUserImageAsync(IFormFile file)
         {
-            var userId = _userContextService.GetUserId;
+            var userId = _userContextService.GetUserIdFromToken();
 
             var user = await _context.Users
                 .Include(x => x.Image)
                 .FirstOrDefaultAsync(x => x.Id == userId)
-                ?? throw new BadRequestException("");
+                ?? throw new NotFoundException(ExceptionMessages.UserNotFound);
 
             if (file == null || file.Length == 0)
-                throw new BadRequestException("No file selected.");
+                throw new BadRequestException(ExceptionMessages.FileIsEmpty);
 
             byte[] data;
+
             using (var stream = new MemoryStream())
             {
                 Bitmap bitmap = new Bitmap(file.OpenReadStream());
@@ -151,7 +143,7 @@ namespace Meedu.Services
 
             user.Image = image;
 
-            _context.Images.Add(image);
+            await _context.Images.AddAsync(image);
             await _context.SaveChangesAsync();
         }
     }

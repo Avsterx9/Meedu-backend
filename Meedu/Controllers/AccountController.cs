@@ -10,48 +10,48 @@ namespace Meedu.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly IAccountService accountService;
+        private readonly IAccountService _accountService;
 
         public AccountController(IAccountService accountService)
         {
-            this.accountService = accountService;
+            _accountService = accountService;
         }
 
         [HttpPost("register")]
-        public ActionResult RegisterUser([FromBody] RegisterUserDto registerUserDto)
+        public async Task<ActionResult> RegisterUser([FromBody] RegisterUserDto registerUserDto)
         {
-            accountService.RegisterUserAsync(registerUserDto);
+            await _accountService.RegisterUserAsync(registerUserDto);
             return Ok();
         }
 
         [HttpPost("login")]
-        public ActionResult Login([FromBody] LoginUserDto loginDto)
+        public async Task<ActionResult> LoginAsync([FromBody] LoginUserDto loginDto)
         {
-            string token = accountService.GenerateJwtToken(loginDto);
+            string token = await _accountService.GenerateJwtTokenAsync(loginDto);
             return Ok(token);
         }
 
         [HttpGet("getUserInfo")]
         [Authorize]
-        public async Task<ActionResult<UserInfoDto>> GetUserInfo()
+        public async Task<ActionResult<UserInfoDto>> GetUserInfoAsync()
         {
-            return Ok(await accountService.GetUserInfoAsync());
+            return Ok(await _accountService.GetUserInfoAsync());
         }
 
 
         [HttpPut("updateUserData")]
         [Authorize]
-        public async Task<ActionResult<UserInfoDto>> UpdateUserData(UpdateUserDataRequest request)
+        public async Task<ActionResult<UserInfoDto>> UpdateUserDataAsync(UpdateUserDataRequest request)
         {
-            await accountService.UpdateUserDataAsync(request);
+            await _accountService.UpdateUserDataAsync(request);
             return Ok();
         }
 
         [HttpPost("setUserImage")]
         [Authorize]
-        public async Task<ActionResult> SetUserImage(IFormFile file)
+        public async Task<ActionResult> SetUserImageAsync(IFormFile file)
         {
-            await accountService.SetUserImageAsync(file);
+            await _accountService.SetUserImageAsync(file);
             return Ok();
         }
     }
