@@ -1,4 +1,5 @@
-﻿using Meedu.Entities;
+﻿using AutoMapper;
+using Meedu.Entities;
 using Meedu.Exceptions;
 using Meedu.Models;
 using Meedu.Models.Auth;
@@ -20,33 +21,26 @@ namespace Meedu.Services
         private readonly ILogger<AccountService> logger;
         private readonly AuthSettings authSettings;
         private readonly IUserContextService _userContextService;
+        private readonly IMapper _mapper;
 
         public AccountService(MeeduDbContext dbContext, 
             IPasswordHasher<User> passwordHasher, 
             ILogger<AccountService> logger, 
             AuthSettings authSettings, 
-            IUserContextService userContextService)
+            IUserContextService userContextService,
+            IMapper mapper)
         {
             this._dbContext = dbContext;
             this.passwordHasher = passwordHasher;
             this.logger = logger;
             this.authSettings = authSettings;
             this._userContextService = userContextService;
+            _mapper = mapper;
         }
 
         public void RegisterUser(RegisterUserDto dto)
         {
-            var newUser = new User()
-            {
-                Email = dto.Email,
-                DateOfBirth = dto.DateOfBirth,
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
-                PhoneNumber = dto.PhoneNumber,
-                RoleId = dto.RoleId,
-                Image = null
-            };
-
+            var newUser = _mapper.Map<User>(dto);
             var hashedPassword = passwordHasher.HashPassword(newUser, dto.Password);
             newUser.PasswordHash = hashedPassword;
 
