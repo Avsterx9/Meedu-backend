@@ -267,7 +267,7 @@ namespace Meedu.Services
                 .ThenInclude(x => x.DaySchedule)
                 .ThenInclude(x => x.PrivateLessonOffer)
                 .ThenInclude(x => x.CreatedBy)
-                .Where(x => x.ReservedBy.Id == userId && x.ReservationDate >= DateTime.Now && x.ReservationDate <= DateTime.Now.AddDays(days))
+                .Where(x => x.ReservedBy.Id == userId && x.ReservationDate >= DateTime.Today && x.ReservationDate <= DateTime.Now.AddDays(days))
                 .ToListAsync();
 
             var dates = reservations
