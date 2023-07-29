@@ -92,6 +92,7 @@ builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ISubjectService, SubjectService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddAutoMapper(typeof(Program));
 
 // VALIDATORS
 builder.Services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
