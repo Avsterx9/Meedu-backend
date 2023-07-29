@@ -92,21 +92,7 @@ namespace Meedu.Services
                 .FirstOrDefaultAsync(u => u.Id == userId)
                 ?? throw new NotFoundException(ExceptionMessages.UserNotFound);
 
-            return new UserInfoDto()
-            {
-                Id = user.Id,
-                Email = user.Email,
-                FirstName = user.FirstName,
-                DateOfBirth = user.DateOfBirth,
-                LastName = user.LastName,
-                PhoneNumber = user.PhoneNumber,
-                RoleId = user.RoleId,
-                ImageDto = new ImageDto
-                {
-                    ContentType = user.Image == null ? "" : user.Image.ContentType,
-                    Data = user.Image1 == null ? "" : Convert.ToBase64String(user.Image.Data)
-                }
-            };
+            return _mapper.Map<UserInfoDto>(user);
         }
 
         public async Task<UserInfoDto> UpdateUserDataAsync(UpdateUserDataRequest request)
