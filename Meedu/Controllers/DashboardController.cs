@@ -4,38 +4,37 @@ using Meedu.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Meedu.Controllers
+namespace Meedu.Controllers;
+
+[Route("api/dashboard")]
+[ApiController]
+public class DashboardController : ControllerBase
 {
-    [Route("api/dashboard")]
-    [ApiController]
-    public class DashboardController : ControllerBase
+    private readonly IDashboardService _dashboardService;
+
+    public DashboardController(IDashboardService dashboardService)
     {
-        private readonly IDashboardService _dashboardService;
+        _dashboardService = dashboardService;
+    }
 
-        public DashboardController(IDashboardService dashboardService)
-        {
-            _dashboardService = dashboardService;
-        }
+    [HttpGet("getTodaysUserLessons")]
+    [Authorize]
+    public async Task<ActionResult<IReadOnlyList<UserReservationDataDto>>> GetTodaysUserLessons()
+    {
+        return Ok(await _dashboardService.GetTodaysUserLessonsAsync());
+    }
 
-        [HttpGet("getTodaysUserLessons")]
-        [Authorize]
-        public async Task<ActionResult<List<UserReservationDataDto>>> GetTodaysUserLessons()
-        {
-            return Ok(await _dashboardService.GetTodaysUserLessonsAsync());
-        }
+    [HttpGet("getTodayUsersLessonsReservations")]
+    [Authorize]
+    public async Task<ActionResult<IReadOnlyList<UserReservationDataDto>>> GetTodayUsersLessonsReservationsAsync()
+    {
+        return Ok(await _dashboardService.GetUsersLessonsReservationsAsync());
+    }
 
-        [HttpGet("getTodayUsersLessonsReservations")]
-        [Authorize]
-        public async Task<ActionResult<List<UserReservationDataDto>>> GetTodayUsersLessonsReservations()
-        {
-            return Ok(await _dashboardService.GetUsersLessonsReservationsAsync());
-        }
-
-        [HttpGet("getUserStudents")]
-        [Authorize]
-        public async Task<ActionResult<List<DtoNameLastnameId>>> GetUserStudents(int amount)
-        {
-            return Ok(await _dashboardService.GetUserStudentsAsync(amount));
-        }
+    [HttpGet("getUserStudents")]
+    [Authorize]
+    public async Task<ActionResult<IReadOnlyList<DtoNameLastnameId>>> GetUserStudentsAsync(int amount)
+    {
+        return Ok(await _dashboardService.GetUserStudentsAsync(amount));
     }
 }

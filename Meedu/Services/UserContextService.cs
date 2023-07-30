@@ -28,7 +28,7 @@ namespace Meedu.Services
             if (User == null)
                 throw new BadRequestException("Missing user info");
 
-            return new Guid(User.FindFirst(ClaimTypes.Name).Value);
+            return new Guid(User.FindFirst(ClaimTypes.NameIdentifier).Value);
         }
     }
 }
