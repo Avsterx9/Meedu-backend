@@ -1,11 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Meedu.Entities
+namespace Meedu.Entities;
+
+public class Subject
 {
-    public class Subject
-    {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-    }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public Guid Id { get; set; }
+    public string Name { get; set; }
 }

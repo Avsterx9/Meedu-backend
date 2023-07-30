@@ -1,9 +1,8 @@
-﻿namespace Meedu.Entities.Enums
+﻿namespace Meedu.Entities.Enums;
+
+public enum Place
 {
-    public enum Place
-    {
-        NotSpecified,
-        StudentsPlace,
-        TeachersPlace
-    }
+    NotSpecified,
+    StudentsPlace,
+    TeachersPlace
 }
