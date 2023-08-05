@@ -105,7 +105,7 @@ public partial class DatabaseRefactor : Migration
             name: "IX_DaySchedules_SubjectId",
             table: "DaySchedules",
             column: "SubjectId");
-
+         
         migrationBuilder.AddForeignKey(
             name: "FK_DaySchedules_PrivateLessonOffers_PrivateLessonOfferId",
             table: "DaySchedules",
