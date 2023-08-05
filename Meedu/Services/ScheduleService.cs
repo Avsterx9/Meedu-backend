@@ -41,10 +41,9 @@ namespace Meedu.Services
 
             var schedule = await _dbContext.DaySchedules
                 .Include(x => x.ScheduleTimestamps)
-                .FirstOrDefaultAsync(ds => ds.User.Id == userId &&
-                ds.Subject.Name == dto.Subject.Name &&
-                ds.DayOfWeek == dto.DayOfWeek && 
-                ds.PrivateLessonOffer.Id == new Guid(dto.lessonOfferId));
+                .FirstOrDefaultAsync(ds =>
+                    ds.User.Id == userId &&
+                    ds.DayOfWeek == dto.DayOfWeek);
 
             var lessonOffer = await _dbContext.PrivateLessonOffers
                 .FirstOrDefaultAsync(x => x.Id == new Guid(dto.lessonOfferId))
@@ -79,11 +78,9 @@ namespace Meedu.Services
                 schedule = new DaySchedule()
                 {
                     DayOfWeek = dto.DayOfWeek,
-                    Subject = subject,
                     Created = DateTime.Now,
                     User = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId),
-                    ScheduleTimestamps = timespans,
-                    PrivateLessonOffer = lessonOffer
+                    ScheduleTimestamps = timespans
                 };
                 await _dbContext.AddAsync(schedule);
             }
@@ -113,17 +110,17 @@ namespace Meedu.Services
 
         public async Task<List<ScheduleDto>> GetScheduleByLessonOfferId(string lessonId)
         {
-            var lessonGuid = ValidateGuid(lessonId);
+            //var lessonGuid = ValidateGuid(lessonId);
 
-            var schedules = await _dbContext.DaySchedules
-                .Include(u => u.User)
-                .Include(u => u.Subject)
-                .Include(u => u.ScheduleTimestamps)
-                .Where(ds => ds.PrivateLessonOffer.Id == lessonGuid)
-                .ToListAsync()
-                ?? throw new NotFoundException("ScheduleNotFound");
+            //var schedules = await _dbContext.DaySchedules
+            //    .Include(u => u.User)
+            //    .Include(u => u.ScheduleTimestamps)
+            //    .Where(ds => ds.PrivateLessonOffer.Id == lessonGuid)
+            //    .ToListAsync()
+            //    ?? throw new NotFoundException("ScheduleNotFound");
 
-            return schedules.Select(x => CreateDtoFromEntity(x)).OrderBy(x => x.DayOfWeek).ToList();
+            //return schedules.Select(x => CreateDtoFromEntity(x)).OrderBy(x => x.DayOfWeek).ToList();
+            return new List<ScheduleDto?>();
         }
 
         public async Task AddTimespanToScheduleAsync(ScheduleTimespanDto dto, string scheduleId)
@@ -265,9 +262,9 @@ namespace Meedu.Services
                 .Include(x => x.ReservedBy)
                 .Include(x => x.ScheduleTimespan)
                 .ThenInclude(x => x.DaySchedule)
-                .ThenInclude(x => x.PrivateLessonOffer)
-                .ThenInclude(x => x.CreatedBy)
-                .Where(x => x.ReservedBy.Id == userId && x.ReservationDate >= DateTime.Today && x.ReservationDate <= DateTime.Now.AddDays(days))
+                //.ThenInclude(x => x.PrivateLessonOffer)
+                //.ThenInclude(x => x.CreatedBy)
+                //.Where(x => x.ReservedBy.Id == userId && x.ReservationDate >= DateTime.Today && x.ReservationDate <= DateTime.Now.AddDays(days))
                 .ToListAsync();
 
             var dates = reservations
@@ -286,10 +283,10 @@ namespace Meedu.Services
                     Day = (int)date.DayOfWeek == 0 ? 6 : (int)date.DayOfWeek - 1
                 };
 
-                reservation.DayReservations = reservations
-                    .Where(x => x.ReservationDate == date)
-                    .Select(x => CreateUserReservationDto(x, x.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy))
-                    .ToList();
+                //reservation.DayReservations = reservations
+                //    .Where(x => x.ReservationDate == date)
+                //    .Select(x => CreateUserReservationDto(x, x.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy))
+                //    .ToList();
 
                 userLessonReservationsList.Add(reservation);
             }
@@ -312,9 +309,9 @@ namespace Meedu.Services
                 .Include(x => x.ReservedBy)
                 .Include(x => x.ScheduleTimespan)
                 .ThenInclude(x => x.DaySchedule)
-                .ThenInclude(x => x.PrivateLessonOffer)
-                .ThenInclude(x => x.CreatedBy)
-                .Where(x => x.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy.Id == userId && x.ReservationDate >= DateTime.Today)
+                //.ThenInclude(x => x.PrivateLessonOffer)
+                //.ThenInclude(x => x.CreatedBy)
+                //.Where(x => x.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy.Id == userId && x.ReservationDate >= DateTime.Today)
                 .ToListAsync();
 
             var dates = reservations
@@ -351,19 +348,20 @@ namespace Meedu.Services
 
         private UserReservationDataDto CreateUserReservationDto(LessonReservation r, User userInfo)
         {
-            return new UserReservationDataDto
-            {
-                AvailableFrom = r.ScheduleTimespan.AvailableFrom.ToString("HH:mm"),
-                AvailableTo = r.ScheduleTimespan.AvailableTo.ToString("HH:mm"),
-                isOnline = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.OnlineLessonsPossible,
-                LessonTitle = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.LessonTitle,
-                Place = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Place,
-                ReservationId = r.Id.ToString(),
-                ScheduleId = r.ScheduleTimespan.DaySchedule.Id.ToString(),
-                TimespanId = r.ScheduleTimespan.Id.ToString(),
-                lessonId = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Id.ToString(),
-                User = SetUserInfo(userInfo)
-            };
+            return new UserReservationDataDto();
+            //return new UserReservationDataDto
+            //{
+            //    AvailableFrom = r.ScheduleTimespan.AvailableFrom.ToString("HH:mm"),
+            //    AvailableTo = r.ScheduleTimespan.AvailableTo.ToString("HH:mm"),
+            //    isOnline = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.OnlineLessonsPossible,
+            //    LessonTitle = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.LessonTitle,
+            //    Place = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Place,
+            //    ReservationId = r.Id.ToString(),
+            //    ScheduleId = r.ScheduleTimespan.DaySchedule.Id.ToString(),
+            //    TimespanId = r.ScheduleTimespan.Id.ToString(),
+            //    lessonId = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Id.ToString(),
+            //    User = SetUserInfo(userInfo)
+            //};
         }
 
         private DtoNameLastnameId SetUserInfo(User userInfo)
@@ -397,11 +395,7 @@ namespace Meedu.Services
             {
                 Id = entity.Id.ToString(),
                 DayOfWeek = entity.DayOfWeek,
-                Subject = new SubjectDto()
-                {
-                    Id = entity.Subject.Id.ToString(),
-                    Name = entity.Subject.Name
-                },
+                Subject = new SubjectDto(),
                 ScheduleTimespans = new List<ScheduleTimespanDto>()
             };
 

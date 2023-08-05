@@ -34,20 +34,10 @@ namespace Meedu.Migrations
                     b.Property<int>("DayOfWeek")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("PrivateLessonOfferId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("SubjectId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PrivateLessonOfferId");
-
-                    b.HasIndex("SubjectId");
 
                     b.HasIndex("UserId");
 
@@ -79,9 +69,6 @@ namespace Meedu.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("PrivateLessonOfferId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime>("ReservationDate")
                         .HasColumnType("datetime2");
 
@@ -92,8 +79,6 @@ namespace Meedu.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PrivateLessonOfferId");
 
                     b.HasIndex("ReservedById");
 
@@ -116,14 +101,15 @@ namespace Meedu.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsRemote")
+                        .HasColumnType("bit");
 
                     b.Property<string>("LessonTitle")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("OnlineLessonsPossible")
-                        .HasColumnType("bit");
 
                     b.Property<int>("Place")
                         .HasColumnType("int");
@@ -134,7 +120,7 @@ namespace Meedu.Migrations
                     b.Property<Guid>("SubjectId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int?>("TeachingRange")
+                    b.Property<int>("TeachingRange")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -246,39 +232,17 @@ namespace Meedu.Migrations
 
             modelBuilder.Entity("Meedu.Entities.DaySchedule", b =>
                 {
-                    b.HasOne("Meedu.Entities.PrivateLessonOffer", "PrivateLessonOffer")
-                        .WithMany()
-                        .HasForeignKey("PrivateLessonOfferId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Meedu.Entities.Subject", "Subject")
-                        .WithMany()
-                        .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Meedu.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("PrivateLessonOffer");
-
-                    b.Navigation("Subject");
-
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("Meedu.Entities.LessonReservation", b =>
                 {
-                    b.HasOne("Meedu.Entities.PrivateLessonOffer", "PrivateLessonOffer")
-                        .WithMany()
-                        .HasForeignKey("PrivateLessonOfferId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Meedu.Entities.User", "ReservedBy")
                         .WithMany()
                         .HasForeignKey("ReservedById")
@@ -290,8 +254,6 @@ namespace Meedu.Migrations
                         .HasForeignKey("ScheduleTimespanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("PrivateLessonOffer");
 
                     b.Navigation("ReservedBy");
 

@@ -54,7 +54,7 @@ namespace Meedu.Services
                     City = dto.City,
                     Description = dto.Description,
                     LessonTitle = dto.LessonTitle != null ? dto.LessonTitle : string.Empty,
-                    OnlineLessonsPossible = dto.isOnline,
+                    IsRemote = dto.isOnline,
                     Place = dto.Place,
                     Price = dto.Price,
                     TeachingRange = dto.TeachingRange,
@@ -102,22 +102,22 @@ namespace Meedu.Services
             if (lessonOffer == null)
                 throw new BadRequestException("OfferNotFound");
 
-            var schedules = await dbContext.DaySchedules
-                .Include(x => x.ScheduleTimestamps)
-                .ThenInclude(x => x.LessonReservations)
-                .Where(x => x.PrivateLessonOffer.Id == lessonOffer.Id)
-                .ToListAsync();
+            //var schedules = await dbContext.DaySchedules
+            //    .Include(x => x.ScheduleTimestamps)
+            //    .ThenInclude(x => x.LessonReservations)
+            //    .Where(x => x. == lessonOffer.Id)
+            //    .ToListAsync();
 
-            foreach(var schedule in schedules)
-            {
-                foreach(var timestamp in schedule.ScheduleTimestamps)
-                {
-                    dbContext.LessonReservations.RemoveRange(timestamp.LessonReservations);
-                }
-                dbContext.RemoveRange(schedule.ScheduleTimestamps);
-            }
+            //foreach(var schedule in schedules)
+            //{
+            //    foreach(var timestamp in schedule.ScheduleTimestamps)
+            //    {
+            //        dbContext.LessonReservations.RemoveRange(timestamp.LessonReservations);
+            //    }
+            //    dbContext.RemoveRange(schedule.ScheduleTimestamps);
+            //}
 
-            dbContext.DaySchedules.RemoveRange(schedules);
+            //dbContext.DaySchedules.RemoveRange(schedules);
             dbContext.PrivateLessonOffers.Remove(lessonOffer);
             await dbContext.SaveChangesAsync();
         }
@@ -161,7 +161,7 @@ namespace Meedu.Services
             offerToEdit.LessonTitle = dto.LessonTitle != null ? dto.LessonTitle : String.Empty;
             offerToEdit.Price = dto.Price;
             offerToEdit.City = dto.City;
-            offerToEdit.OnlineLessonsPossible = dto.isOnline;
+            offerToEdit.IsRemote = dto.isOnline;
             offerToEdit.Description = dto.Description;
             offerToEdit.Subject = subject;
             offerToEdit.Place = dto.Place;
@@ -208,7 +208,7 @@ namespace Meedu.Services
                 lessons = lessons.Where(o => o.TeachingRange == dto.TeachingRange).ToList();
 
             if(dto.IsOnline != null)
-                lessons = lessons.Where(o => o.OnlineLessonsPossible == dto.IsOnline).ToList();
+                lessons = lessons.Where(o => o.IsRemote == dto.IsOnline).ToList();
 
             if(dto.PriceFrom != null)
                 lessons = lessons.Where(o => o.Price > dto.PriceFrom).ToList();
@@ -226,7 +226,7 @@ namespace Meedu.Services
                 Id = offer.Id.ToString(),
                 City = offer.City,
                 Description = offer.Description != null ? offer.Description : "",
-                isOnline = offer.OnlineLessonsPossible,
+                isOnline = offer.IsRemote,
                 LessonTitle = offer.LessonTitle,
                 Place = offer.Place,
                 Price = offer.Price,
@@ -235,7 +235,7 @@ namespace Meedu.Services
                     Id = offer.Subject.Id.ToString(),
                     Name = offer.Subject.Name
                 },
-                TeachingRange = offer.TeachingRange != null ? offer.TeachingRange.Value : TeachingRange.Other,
+                TeachingRange = offer.TeachingRange != null ? offer.TeachingRange : TeachingRange.Other,
                 User = new DtoNameLastnameId() 
                 { 
                     Id = offer.CreatedBy.Id.ToString(),
