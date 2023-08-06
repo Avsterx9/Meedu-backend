@@ -7,13 +7,13 @@ namespace Meedu.Services;
 public interface IScheduleService
 {
     Task AddScheduleAsync(ScheduleDto dto);
-    Task DeleteScheduleAsync(string scheduleId);
-    Task<List<ScheduleDto>> GetScheduleByLessonOfferId(string lessonId);
-    Task AddTimespanToScheduleAsync(ScheduleTimespanDto dto, string scheduleId);
-    Task DeleteTimespanFromScheduleAsync(string timespanId);
-    Task AddReservationAsync(LessonReservationDto dto, string scheduleId, string timespanId);
-    Task DeleteReservationAsync(string reservationId);
-    Task<List<LessonReservationDto>> GetReservationsByTimespanIdAsync(string scheduleId, string timespanId);
+    Task DeleteScheduleAsync(Guid scheduleId);
+    Task<List<ScheduleDto>> GetScheduleByLessonOfferId(Guid lessonId);
+    Task AddTimestampToScheduleAsync(ScheduleTimespanDto dto, Guid scheduleId);
+    Task DeleteTimespanFromScheduleAsync(Guid timespanId);
+    Task AddReservationAsync(LessonReservationDto dto, Guid timespanId);
+    Task DeleteReservationAsync(Guid reservationId);
+    Task<List<LessonReservationDto>> GetReservationsByTimespanIdAsync(Guid scheduleId, Guid timespanId);
     Task<List<UserPrivateLessonReservationsDto>> GetReservationsByUserAsync(int days);
     Task<List<UserPrivateLessonReservationsDto>> GetUserLessonReservationsAsync(int days);
 }
