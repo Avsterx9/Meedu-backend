@@ -10,28 +10,28 @@ namespace Meedu.Services;
 
 public class ScheduleService : IScheduleService
 {
-    private readonly MeeduDbContext _dbContext;
+    private readonly MeeduDbContext _context;
     private readonly ILogger<ScheduleService> _logger;
     private readonly IUserContextService _userContextService;
 
-    public ScheduleService(MeeduDbContext _dbContext, ILogger<ScheduleService> _logger, IUserContextService _userContextService)
+    public ScheduleService(MeeduDbContext dbContext, ILogger<ScheduleService> logger, IUserContextService userContextService)
     {
-        this._dbContext = _dbContext;
-        this._logger = _logger;
-        this._userContextService = _userContextService;
+        _context = dbContext;
+        _logger = logger;
+        _userContextService = userContextService;
     }
 
     public async Task AddScheduleAsync(ScheduleDto dto)
     {
         var userId = _userContextService.GetUserId;
 
-        var schedule = await _dbContext.DaySchedules
+        var schedule = await _context.DaySchedules
             .Include(x => x.ScheduleTimestamps)
             .FirstOrDefaultAsync(ds =>
                 ds.User.Id == userId &&
                 ds.DayOfWeek == dto.DayOfWeek);
 
-        var lessonOffer = await _dbContext.PrivateLessonOffers
+        var lessonOffer = await _context.PrivateLessonOffers
             .FirstOrDefaultAsync(x => x.Id == new Guid(dto.lessonOfferId))
             ?? throw new BadRequestException("LessonOfferNotExists");
 
@@ -65,18 +65,18 @@ public class ScheduleService : IScheduleService
             {
                 DayOfWeek = dto.DayOfWeek,
                 Created = DateTime.Now,
-                User = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId),
+                User = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId),
                 ScheduleTimestamps = timespans
             };
-            await _dbContext.AddAsync(schedule);
+            await _context.AddAsync(schedule);
         }
-        await _dbContext.SaveChangesAsync();
+        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteScheduleAsync(string scheduleId)
     {
         var scheduleGuid = ValidateGuid(scheduleId);
-        var schedule = await _dbContext.DaySchedules
+        var schedule = await _context.DaySchedules
             .Include(x => x.ScheduleTimestamps)
             .ThenInclude(x => x.LessonReservations)
             .FirstOrDefaultAsync(x => x.Id == scheduleGuid)
@@ -85,13 +85,13 @@ public class ScheduleService : IScheduleService
         foreach(var timestamp in schedule.ScheduleTimestamps)
         {
             if(timestamp.LessonReservations != null && timestamp.LessonReservations.Count > 0)
-                _dbContext.LessonReservations.RemoveRange(timestamp.LessonReservations);
+                _context.LessonReservations.RemoveRange(timestamp.LessonReservations);
         }
 
-        _dbContext.ScheduleTimespans.RemoveRange(schedule.ScheduleTimestamps);
-        _dbContext.DaySchedules.Remove(schedule);
+        _context.ScheduleTimespans.RemoveRange(schedule.ScheduleTimestamps);
+        _context.DaySchedules.Remove(schedule);
 
-        await _dbContext.SaveChangesAsync();
+        await _context.SaveChangesAsync();
     }
 
     public async Task<List<ScheduleDto>> GetScheduleByLessonOfferId(string lessonId)
@@ -113,7 +113,7 @@ public class ScheduleService : IScheduleService
     {
         var scheduleGuid = ValidateGuid(scheduleId);
 
-        var schedule = await _dbContext.DaySchedules
+        var schedule = await _context.DaySchedules
             .Include(d => d.ScheduleTimestamps)
             .FirstOrDefaultAsync(d => d.Id == scheduleGuid)
             ?? throw new BadRequestException("ScheduleNotFound");
@@ -131,21 +131,21 @@ public class ScheduleService : IScheduleService
         };
 
         schedule.ScheduleTimestamps.Add(timespan);
-        await _dbContext.SaveChangesAsync();
+        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteTimespanFromScheduleAsync(string timespanId)
     {
         var timespanGuid = ValidateGuid(timespanId);
 
-        var timespan = await _dbContext.ScheduleTimespans
+        var timespan = await _context.ScheduleTimespans
             .Include(x => x.LessonReservations)
             .FirstOrDefaultAsync(d => d.Id == timespanGuid)
             ?? throw new BadRequestException("TimespanNotFound");
 
-        _dbContext.LessonReservations.RemoveRange(timespan.LessonReservations);
-        _dbContext.ScheduleTimespans.Remove(timespan);
-        await _dbContext.SaveChangesAsync();
+        _context.LessonReservations.RemoveRange(timespan.LessonReservations);
+        _context.ScheduleTimespans.Remove(timespan);
+        await _context.SaveChangesAsync();
     }
 
     public async Task AddReservationAsync(LessonReservationDto dto, string scheduleId, string timespanId)
@@ -155,12 +155,12 @@ public class ScheduleService : IScheduleService
         var timespanGuid = ValidateGuid(timespanId);
         var scheduleGuid = ValidateGuid(scheduleId);
 
-        var schedule = await _dbContext.DaySchedules
+        var schedule = await _context.DaySchedules
             .Include(x => x.ScheduleTimestamps)
             .FirstOrDefaultAsync(t => t.Id == scheduleGuid)
             ?? throw new BadRequestException("ScheduleNotFound");
 
-        var timespan = await _dbContext.ScheduleTimespans
+        var timespan = await _context.ScheduleTimespans
             .Include(x => x.LessonReservations)
             .FirstOrDefaultAsync(t => t.Id == timespanGuid)
             ?? throw new BadRequestException("TimespanNotFound");
@@ -168,7 +168,7 @@ public class ScheduleService : IScheduleService
         if (timespan.LessonReservations == null)
             timespan.LessonReservations = new List<LessonReservation>();
 
-        var existingReservations = await _dbContext.LessonReservations
+        var existingReservations = await _context.LessonReservations
             .Include(x => x.ReservedBy)
             .Include(x => x.ScheduleTimespan)
             .Where(x => x.ReservedBy.Id == userId && x.ReservationDate == dto.ReservationDate)
@@ -180,7 +180,7 @@ public class ScheduleService : IScheduleService
         if(timespan.LessonReservations.Any(r => r.ReservationDate == dto.ReservationDate))
             throw new BadRequestException("DateIsAlreadyReserved");
 
-        var user = await _dbContext.Users
+        var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Id == new Guid(dto.ReservedBy.Id))
             ?? throw new BadRequestException("UserNotFound");
 
@@ -193,19 +193,19 @@ public class ScheduleService : IScheduleService
             ReservationDate = dto.ReservationDate
         });
 
-        await _dbContext.SaveChangesAsync();
+        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteReservationAsync(string reservationId)
     {
         var reservationGuid = ValidateGuid(reservationId);
 
-        var reservation = await _dbContext.LessonReservations
+        var reservation = await _context.LessonReservations
             .FirstOrDefaultAsync(r => r.Id == reservationGuid)
             ?? throw new BadRequestException("ReservationNotFound");
 
-        _dbContext.LessonReservations.Remove(reservation);
-        await _dbContext.SaveChangesAsync();
+        _context.LessonReservations.Remove(reservation);
+        await _context.SaveChangesAsync();
     }
 
     public async Task<List<LessonReservationDto>> GetReservationsByTimespanIdAsync(string scheduleId, string timespanId)
@@ -213,12 +213,12 @@ public class ScheduleService : IScheduleService
         var scheduleGuid = ValidateGuid(scheduleId);
         var timespanGuid = ValidateGuid(timespanId);
 
-        var schedule = await _dbContext.DaySchedules
+        var schedule = await _context.DaySchedules
             .Include(x => x.ScheduleTimestamps)
             .FirstOrDefaultAsync(t => t.Id == scheduleGuid)
             ?? throw new BadRequestException("ScheduleNotFound");
 
-        var timespan = await _dbContext.ScheduleTimespans
+        var timespan = await _context.ScheduleTimespans
             .Include(x => x.LessonReservations)
             .ThenInclude(x => x.ReservedBy)
             .FirstOrDefaultAsync(t => t.Id == timespanGuid)
@@ -244,7 +244,7 @@ public class ScheduleService : IScheduleService
     {
         var userId = _userContextService.GetUserId;
 
-        var reservations = await _dbContext.LessonReservations
+        var reservations = await _context.LessonReservations
             .Include(x => x.ReservedBy)
             .Include(x => x.ScheduleTimespan)
             .ThenInclude(x => x.DaySchedule)
@@ -291,7 +291,7 @@ public class ScheduleService : IScheduleService
     {
         var userId = _userContextService.GetUserId;
 
-        var reservations = await _dbContext.LessonReservations
+        var reservations = await _context.LessonReservations
             .Include(x => x.ReservedBy)
             .Include(x => x.ScheduleTimespan)
             .ThenInclude(x => x.DaySchedule)
@@ -363,13 +363,13 @@ public class ScheduleService : IScheduleService
 
     private async Task<Subject> CreateNewSubjectIfNotExists(String SubjectName)
     {
-        var subject = await _dbContext.Subjects
+        var subject = await _context.Subjects
             .FirstOrDefaultAsync(s => s.Name.Contains(SubjectName));
 
         if (subject == null)
         {
             subject = new Subject() { Name = SubjectName };
-            _dbContext.Subjects.Add(subject);
+            _context.Subjects.Add(subject);
         }
 
         return subject;
