@@ -1,5 +1,6 @@
 ﻿using Meedu.Entities;
 using Meedu.Exceptions;
+using Meedu.Helpers;
 using Meedu.Models;
 using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Reservations.UserReservations;
@@ -23,7 +24,7 @@ public class ScheduleService : IScheduleService
 
     public async Task AddScheduleAsync(ScheduleDto dto)
     {
-        var userId = _userContextService.GetUserId;
+        var userId = _userContextService.GetUserIdFromToken();
 
         var schedule = await _context.DaySchedules
             .Include(x => x.ScheduleTimestamps)
@@ -31,45 +32,23 @@ public class ScheduleService : IScheduleService
                 ds.User.Id == userId &&
                 ds.DayOfWeek == dto.DayOfWeek);
 
-        var lessonOffer = await _context.PrivateLessonOffers
-            .FirstOrDefaultAsync(x => x.Id == new Guid(dto.lessonOfferId))
-            ?? throw new BadRequestException("LessonOfferNotExists");
-
-        Subject subject = await CreateNewSubjectIfNotExists(dto.Subject.Name);
-        var timespans = new List<ScheduleTimespan>();
-
-        if (dto.ScheduleTimespans != null)
-        {
-            foreach (var timespan in dto.ScheduleTimespans)
-            {
-                timespans.Add(new ScheduleTimespan()
-                {
-                    AvailableFrom = DateTime.Parse(timespan.AvailableFrom),
-                    AvailableTo = DateTime.Parse(timespan.AvailableTo),
-                    LessonReservations = new List<LessonReservation>()
-                });
-            }
-        }
-
         if (schedule != null)
+            throw new BadRequestException(ExceptionMessages.ScheduleAlreadyExists);
+
+        var newSchedule = new DaySchedule
         {
-            foreach(var t in timespans)
+            Created = DateTime.Now,
+            DayOfWeek = dto.DayOfWeek,
+            UserId = userId,
+            ScheduleTimestamps = dto.ScheduleTimespans.Select(x => new ScheduleTimespan
             {
-                if (!schedule.ScheduleTimestamps.Any(x => TimeOnly.FromDateTime(x.AvailableFrom) == TimeOnly.FromDateTime(t.AvailableFrom)))
-                    schedule.ScheduleTimestamps.Add(t);
-            }
-        } 
-        else
-        {
-            schedule = new DaySchedule()
-            {
-                DayOfWeek = dto.DayOfWeek,
-                Created = DateTime.Now,
-                User = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId),
-                ScheduleTimestamps = timespans
-            };
-            await _context.AddAsync(schedule);
-        }
+                AvailableFrom = DateTime.Parse(x.AvailableFrom),
+                AvailableTo = DateTime.Parse(x.AvailableTo),
+                LessonReservations = new List<LessonReservation>()
+            }).ToList()
+        };
+
+        await _context.DaySchedules.AddAsync(newSchedule);
         await _context.SaveChangesAsync();
     }
 
