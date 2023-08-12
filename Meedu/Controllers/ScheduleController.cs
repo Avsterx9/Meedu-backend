@@ -28,14 +28,14 @@ public class ScheduleController : ControllerBase
 
     [HttpDelete("delete")]
     [Authorize]
-    public async Task<ActionResult> DeleteSchedule(string scheduleId)
+    public async Task<ActionResult> DeleteSchedule(Guid scheduleId)
     {
         await _scheduleService.DeleteScheduleAsync(scheduleId);
         return Ok();
     }
 
     [HttpGet("getByLessonOffer")]
-    public async Task<ActionResult<List<ScheduleDto>>> GetSchedule(string lessonOfferId)
+    public async Task<ActionResult<List<ScheduleDto>>> GetSchedule(Guid lessonOfferId)
     {
         return Ok(await _scheduleService.GetScheduleByLessonOfferId(lessonOfferId));
     }
@@ -61,7 +61,7 @@ public class ScheduleController : ControllerBase
     [Authorize]
     public async Task<ActionResult> AddReservation([FromBody] LessonReservationDto reservation, Guid scheduleId, Guid timespanId)
     {
-        await _scheduleService.AddReservationAsync(reservation, scheduleId, timespanId);
+        await _scheduleService.AddReservationAsync(reservation, timespanId);
         return Ok();
     }
 
