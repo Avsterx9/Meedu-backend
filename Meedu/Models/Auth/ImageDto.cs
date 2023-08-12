@@ -1,8 +1,7 @@
-﻿namespace Meedu.Models.Auth
+﻿namespace Meedu.Models.Auth;
+
+public class ImageDto
 {
-    public class ImageDto
-    {
-        public string Data { get; set; }
-        public string ContentType { get; set; }
-    }
+    public string Data { get; set; }
+    public string ContentType { get; set; }
 }

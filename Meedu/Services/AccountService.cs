@@ -1,4 +1,8 @@
 ﻿using AutoMapper;
+using Meedu.Commands.Login;
+using Meedu.Commands.RegisterUser;
+using Meedu.Commands.SetUserImage;
+using Meedu.Commands.UpdateUser;
 using Meedu.Entities;
 using Meedu.Exceptions;
 using Meedu.Helpers;
@@ -39,24 +43,35 @@ public class AccountService : IAccountService
         _mapper = mapper;
     }
 
-    public async Task RegisterUserAsync(RegisterUserDto dto)
+    public async Task<UserInfoDto> RegisterUserAsync(RegisterUserCommand command)
     {
-        var newUser = _mapper.Map<User>(dto);
-        var hashedPassword = _passwordHasher.HashPassword(newUser, dto.Password);
+        var newUser = new User
+        {
+            DateOfBirth = command.DateOfBirth,
+            Email = command.Email,
+            FirstName = command.FirstName,
+            LastName = command.LastName,
+            RoleId = command.RoleId,
+            PhoneNumber = command.PhoneNumber,
+        };
+
+        var hashedPassword = _passwordHasher.HashPassword(newUser, command.Password);
         newUser.PasswordHash = hashedPassword;
 
         await _context.Users.AddAsync(newUser);
         await _context.SaveChangesAsync();
+
+        return _mapper.Map<UserInfoDto>(newUser);
     }
 
-    public async Task<string> GenerateJwtTokenAsync(LoginUserDto loginDto)
+    public async Task<string> GenerateJwtTokenAsync(LoginCommand command)
     {
         var user = await _context.Users
             .Include(x => x.Role)
-            .FirstOrDefaultAsync(x => x.Email == loginDto.Email)
+            .FirstOrDefaultAsync(x => x.Email == command.Email)
             ?? throw new BadRequestException(ExceptionMessages.InvalidUsernameOrPassword);
 
-        var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password);
+        var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, command.Password);
 
         if (result == PasswordVerificationResult.Failed)
             throw new BadRequestException(ExceptionMessages.InvalidUsernameOrPassword);
@@ -95,7 +110,7 @@ public class AccountService : IAccountService
         return _mapper.Map<UserInfoDto>(user);
     }
 
-    public async Task<UserInfoDto> UpdateUserDataAsync(UpdateUserDataRequest request)
+    public async Task<UserInfoDto> UpdateUserDataAsync(UpdateUserCommand command)
     {
         var userId = _userContextService.GetUserIdFromToken();
 
@@ -104,17 +119,16 @@ public class AccountService : IAccountService
             .FirstOrDefaultAsync(x => x.Id == userId)
             ?? throw new NotFoundException(ExceptionMessages.UserNotFound);
 
-        user.PhoneNumber = request.PhoneNumber;
-        user.FirstName = request.FirstName;
-        user.LastName = request.LastName;
-        user.DateOfBirth = request.DateOfBirth;
+        user.PhoneNumber = command.PhoneNumber;
+        user.FirstName = command.FirstName;
+        user.LastName = command.LastName;
+        user.DateOfBirth = command.DateOfBirth;
 
         await _context.SaveChangesAsync();
-
         return _mapper.Map<UserInfoDto>(user);
     }
 
-    public async Task SetUserImageAsync(IFormFile file)
+    public async Task<UserInfoDto> SetUserImageAsync(SetUserImageCommand command)
     {
         var userId = _userContextService.GetUserIdFromToken();
 
@@ -123,27 +137,25 @@ public class AccountService : IAccountService
             .FirstOrDefaultAsync(x => x.Id == userId)
             ?? throw new NotFoundException(ExceptionMessages.UserNotFound);
 
-        if (file == null || file.Length == 0)
+        if (command.file == null || command.file.Length == 0)
             throw new BadRequestException(ExceptionMessages.FileIsEmpty);
 
         byte[] data;
 
         using (var stream = new MemoryStream())
         {
-            Bitmap bitmap = new Bitmap(file.OpenReadStream());
+            Bitmap bitmap = new Bitmap(command.file.OpenReadStream());
             bitmap.Save(stream, ImageFormat.Jpeg);
             data = stream.ToArray();
         }
 
-        var image = new Meedu.Entities.Image
+        user.Image = new Meedu.Entities.Image
         {
-            ContentType = file.ContentType,
+            ContentType = command.file.ContentType,
             Data = data
         };
 
-        user.Image = image;
-
-        await _context.Images.AddAsync(image);
         await _context.SaveChangesAsync();
+        return _mapper.Map<UserInfoDto>(user);
     }
 }

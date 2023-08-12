@@ -1,14 +1,13 @@
-﻿namespace Meedu.Models.Auth
+﻿namespace Meedu.Models.Auth;
+
+public class UserInfoDto
 {
-    public class UserInfoDto
-    {
-        public Guid Id { get; set; }
-        public string Email { get; set; }
-        public DateTime? DateOfBirth { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string PhoneNumber { get; set; }
-        public int RoleId { get; set; } = 4;
-        public ImageDto ImageDto { get; set; }
-    }
+    public Guid Id { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public DateTime? DateOfBirth { get; set; }
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string PhoneNumber { get; set; } = string.Empty;
+    public int RoleId { get; set; } = 4;
+    public ImageDto ImageDto { get; set; }
 }

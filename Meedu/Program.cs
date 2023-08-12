@@ -93,6 +93,7 @@ builder.Services.AddScoped<ISubjectService, SubjectService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
 // VALIDATORS
 builder.Services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();

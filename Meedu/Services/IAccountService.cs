@@ -1,14 +1,18 @@
 ﻿using Meedu.Models.Auth;
 using Meedu.Models;
+using Meedu.Commands.RegisterUser;
+using Meedu.Commands.Login;
+using Meedu.Commands.UpdateUser;
+using Meedu.Commands.SetUserImage;
 
 namespace Meedu.Services;
 
 public interface IAccountService
 {
-    Task RegisterUserAsync(RegisterUserDto dto);
-    Task<string> GenerateJwtTokenAsync(LoginUserDto loginDto);
+    Task<UserInfoDto> RegisterUserAsync(RegisterUserCommand command);
+    Task<string> GenerateJwtTokenAsync(LoginCommand command);
     Task<UserInfoDto> GetUserInfoAsync();
-    Task<UserInfoDto> UpdateUserDataAsync(UpdateUserDataRequest request);
-    Task SetUserImageAsync(IFormFile file);
+    Task<UserInfoDto> UpdateUserDataAsync(UpdateUserCommand command);
+    Task<UserInfoDto> SetUserImageAsync(SetUserImageCommand command);
 }
 
