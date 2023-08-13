@@ -1,10 +1,11 @@
 ﻿using FluentValidation;
+using Meedu.Commands.RegisterUser;
 using Meedu.Entities;
 using Meedu.Models.Auth;
 
 namespace Meedu.Models.Validators
 {
-    public class RegisterUserDtoValidator : AbstractValidator<RegisterUserDto>
+    public class RegisterUserDtoValidator : AbstractValidator<RegisterUserCommand>
     {
         public RegisterUserDtoValidator(MeeduDbContext dbContext)
         {
