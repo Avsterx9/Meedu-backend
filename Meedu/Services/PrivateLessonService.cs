@@ -9,6 +9,7 @@ using Meedu.Models;
 using Meedu.Models.Auth;
 using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Response;
+using Meedu.Queries.GetLessonOfferById;
 using Microsoft.EntityFrameworkCore;
 
 namespace Meedu.Services;
@@ -102,14 +103,14 @@ public class PrivateLessonService : IPrivateLessonService
         return new DeleteLessonOfferResponse(true, "Lesson removed successfully");
     }
 
-    public async Task<PrivateLessonOfferDto> GetByIdAsync(string id)
+    public async Task<PrivateLessonOfferDto> GetByIdAsync(GetLessonOfferByIdQuery query)
     {
         var lesson = await _context.PrivateLessonOffers
             .Include(x => x.CreatedBy)
             .ThenInclude(x => x.Image)
             .Include(x => x.Subject)
             .AsNoTracking()
-            .FirstOrDefaultAsync(o => o.Id == new Guid(id))
+            .FirstOrDefaultAsync(o => o.Id == query.LessonId)
             ?? throw new NotFoundException(ExceptionMessages.LessonOfferNotFound);
 
         return _mapper.Map<PrivateLessonOfferDto>(lesson);
