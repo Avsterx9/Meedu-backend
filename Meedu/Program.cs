@@ -15,6 +15,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Auth;
+using Meedu.Commands.RegisterUser;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseNLog();
@@ -96,7 +97,7 @@ builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
 // VALIDATORS
-builder.Services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
+builder.Services.AddScoped<IValidator<RegisterUserCommand>, RegisterUserDtoValidator>();
 builder.Services.AddScoped<IValidator<PrivateLessonOfferDto>, PrivateLessonOfferDtoValidator>();
 
 builder.Services.AddScoped<ErrorHandlingMiddleware>();

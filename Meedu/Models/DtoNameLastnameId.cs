@@ -1,13 +1,12 @@
 ﻿using Meedu.Models.Auth;
 
-namespace Meedu.Models
+namespace Meedu.Models;
+
+public class DtoNameLastnameId
 {
-    public class DtoNameLastnameId
-    {
-        public string Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string PhoneNumber { get; set; }
-        public ImageDto? ImageDto { get; set; }
-    }
+    public string Id { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string PhoneNumber { get; set; }
+    public ImageDto? ImageDto { get; set; }
 }

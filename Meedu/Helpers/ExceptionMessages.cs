@@ -11,6 +11,7 @@ public static class ExceptionMessages
 
     // LESSON OFFERS
     public static readonly string LessonOfferNotFound = "Lesson offer not found";
+    public static readonly string SubjectNotFound = "Subject offer not found";
 
     // SCHEDULES
     public static readonly string ScheduleAlreadyExists = "Schedule already exists";
