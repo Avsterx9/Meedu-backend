@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Meedu.Commands.CreateLessonOffer;
+using Meedu.Commands.DeleteLessonOffer;
 using Meedu.Entities;
 using Meedu.Entities.Enums;
 using Meedu.Exceptions;
@@ -7,6 +8,7 @@ using Meedu.Helpers;
 using Meedu.Models;
 using Meedu.Models.Auth;
 using Meedu.Models.PrivateLessonOffer;
+using Meedu.Models.Response;
 using Microsoft.EntityFrameworkCore;
 
 namespace Meedu.Services;
@@ -80,32 +82,24 @@ public class PrivateLessonService : IPrivateLessonService
             .ToListAsync();
     }
 
-    public async Task DeleteLessonOfferAsync(string id)
+    public async Task<DeleteLessonOfferResponse> DeleteLessonOfferAsync(DeleteLessonOfferCommand command)
     {
+        var userId = _userContextService.GetUserIdFromToken();
+
         var lessonOffer = await _context.PrivateLessonOffers
-            .FirstOrDefaultAsync(o => o.Id == new Guid(id));
+            .FirstOrDefaultAsync(o => o.Id == command.LessonId)
+            ?? throw new NotFoundException(ExceptionMessages.LessonOfferNotFound);
 
-        if (lessonOffer == null)
-            throw new BadRequestException("OfferNotFound");
+        var reservations = await _context.LessonReservations
+            .Where(x => x.PrivateLessonOfferId == lessonOffer.Id)
+            .AsNoTracking()
+            .ToListAsync();
 
-        //var schedules = await dbContext.DaySchedules
-        //    .Include(x => x.ScheduleTimestamps)
-        //    .ThenInclude(x => x.LessonReservations)
-        //    .Where(x => x. == lessonOffer.Id)
-        //    .ToListAsync();
-
-        //foreach(var schedule in schedules)
-        //{
-        //    foreach(var timestamp in schedule.ScheduleTimestamps)
-        //    {
-        //        dbContext.LessonReservations.RemoveRange(timestamp.LessonReservations);
-        //    }
-        //    dbContext.RemoveRange(schedule.ScheduleTimestamps);
-        //}
-
-        //dbContext.DaySchedules.RemoveRange(schedules);
+        _context.RemoveRange(reservations);
         _context.PrivateLessonOffers.Remove(lessonOffer);
         await _context.SaveChangesAsync();
+
+        return new DeleteLessonOfferResponse(true, "Lesson removed successfully");
     }
 
     public async Task<PrivateLessonOfferDto> GetByIdAsync(string id)
@@ -114,13 +108,11 @@ public class PrivateLessonService : IPrivateLessonService
             .Include(x => x.CreatedBy)
             .ThenInclude(x => x.Image)
             .Include(x => x.Subject)
-            .FirstOrDefaultAsync(o => o.Id == new Guid(id));
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == new Guid(id))
+            ?? throw new NotFoundException(ExceptionMessages.LessonOfferNotFound);
 
-        if (lesson == null)
-            throw new BadRequestException("LessonOfferNotFound");
-
-        var dto = CreateLessonOfferDto(lesson);
-        return dto;
+        return _mapper.Map<PrivateLessonOfferDto>(lesson);
     }
 
     public async Task UpdateLessonOfferAsync(PrivateLessonOfferDto dto)
