@@ -11,6 +11,7 @@ using Meedu.Models.Auth;
 using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Response;
 using Meedu.Queries.GetLessonOfferById;
+using Meedu.Queries.LessonOffersSimpleSearch;
 using Microsoft.EntityFrameworkCore;
 
 namespace Meedu.Services;
@@ -141,18 +142,15 @@ public class PrivateLessonService : IPrivateLessonService
         return _mapper.Map<PrivateLessonOfferDto>(offerToEdit);
     }
 
-    public async Task<List<PrivateLessonOfferDto>> SimpleSearchByNameAsync(string searchValue)
+    public async Task<IReadOnlyList<PrivateLessonOfferDto>> SimpleSearchByNameAsync(SearchLessonOffersQuery query)
     {
-        var lessons = await _context.PrivateLessonOffers
-            .Include(o => o.CreatedBy)
+        return await _context.PrivateLessonOffers
+            .Include(x => x.CreatedBy)
             .ThenInclude(x => x.Image)
-            .Include(o => o.Subject)
+            .Include(x => x.Subject)
+            .Where(x => x.LessonTitle.ToLower().Contains(query.Value.ToLower()))
+            .Select(x => _mapper.Map<PrivateLessonOfferDto>(x))
             .ToListAsync();
-
-        if (!string.IsNullOrEmpty(searchValue))
-            lessons = lessons.Where(o => o.LessonTitle.ToLower().Contains(searchValue.ToLower())).ToList();
-
-        return lessons.Select(o => CreateLessonOfferDto(o)).ToList();
     }
 
     public async Task<List<PrivateLessonOfferDto>> AdvancedSearchAsync(LessonOfferAdvancedSearchDto dto)

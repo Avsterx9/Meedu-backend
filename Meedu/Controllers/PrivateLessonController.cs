@@ -1,13 +1,17 @@
 ﻿using MediatR;
 using Meedu.Commands.CreateLessonOffer;
 using Meedu.Commands.DeleteLessonOffer;
+using Meedu.Commands.UpdateLessonOffer;
 using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Response;
 using Meedu.Queries.GetAllLessonOffers;
+using Meedu.Queries.GetLessonOfferById;
 using Meedu.Queries.GetLessonOffersByUser;
+using Meedu.Queries.LessonOffersSimpleSearch;
 using Meedu.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Update.Internal;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Meedu.Controllers;
@@ -55,29 +59,30 @@ public class PrivateLessonController : ControllerBase
         return Ok(res);
     }
 
-    //[HttpGet("getById")]
-    //[Authorize]
-    //public async Task<ActionResult<PrivateLessonOfferDto>> GetById(string id)
-    //{
-    //    return Ok(await privateLessonService.GetByIdAsync(id));
-    //}
+    [HttpGet("getById")]
+    [Authorize]
+    public async Task<ActionResult<PrivateLessonOfferDto>> GetById(
+        [FromQuery] GetLessonOfferByIdQuery query)
+    {
+        var res = await _sender.Send(query);
+        return Ok(res);
+    }
 
-    //[HttpPut("update")]
-    //[Authorize]
-    //public async Task<ActionResult> GetById([FromBody] PrivateLessonOfferDto dto)
-    //{
-    //    await privateLessonService.UpdateLessonOfferAsync(dto);
-    //    return Ok();
-    //}
+    [HttpPut("update")]
+    [Authorize]
+    public async Task<ActionResult> GetById([FromBody] UpdateLessonOfferCommand command)
+    {
+        var res = await _sender.Send(command);
+        return Ok(res);
+    }
 
-    //[HttpGet("search")]
-    //public async Task<ActionResult<List<PrivateLessonOfferDto>>> SimpleSearchByName(string? searchValue = "")
-    //{
-    //    if (searchValue == null)
-    //        searchValue = String.Empty;
-
-    //    return Ok(await privateLessonService.SimpleSearchByNameAsync(searchValue));
-    //}
+    [HttpGet("search")]
+    public async Task<ActionResult<List<PrivateLessonOfferDto>>> SimpleSearchByNameAsync(
+        [FromBody] SearchLessonOffersQuery query)
+    {
+        var res = await _sender.Send(query);
+        return Ok(res);
+    }
 
     //[HttpPost("advancedSearch")]
     //public async Task<ActionResult<List<PrivateLessonOfferDto>>> AdvancedSearch(LessonOfferAdvancedSearchDto dto)
