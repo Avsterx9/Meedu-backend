@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Meedu.Commands.CreateLessonOffer;
 using Meedu.Commands.DeleteLessonOffer;
+using Meedu.Commands.UpdateLessonOffer;
 using Meedu.Entities;
 using Meedu.Entities.Enums;
 using Meedu.Exceptions;
@@ -116,37 +117,28 @@ public class PrivateLessonService : IPrivateLessonService
         return _mapper.Map<PrivateLessonOfferDto>(lesson);
     }
 
-    public async Task UpdateLessonOfferAsync(PrivateLessonOfferDto dto)
+    public async Task<PrivateLessonOfferDto> UpdateLessonOfferAsync(UpdateLessonOfferCommand command)
     {
-        if (dto.Id == null)
-            throw new ArgumentNullException("OfferIdIsNull");
+        var offerToEdit = await _context.PrivateLessonOffers
+            .Include(x => x.CreatedBy)
+            .FirstOrDefaultAsync(x => x.Id == command.Id)
+            ?? throw new NotFoundException(ExceptionMessages.LessonOfferNotFound);
 
-        var offerToEdit = await _context.PrivateLessonOffers.FirstOrDefaultAsync(o => o.Id == new Guid(dto.Id));
-
-        if (offerToEdit == null)
-            throw new BadRequestException("LessonOfferNotFound");
-
-        var subject = await _context.Subjects.FirstOrDefaultAsync(s => s.Name.Contains(dto.Subject.Name));
-
-        if (subject == null)
+        if(command.Subject.Id != offerToEdit.SubjectId)
         {
-            subject = new Subject()
-            {
-                Name = dto.Subject.Name
-            };
-            await _context.Subjects.AddAsync(subject);
+            var selectedSubject = await _context.Subjects
+                .FirstOrDefaultAsync(x => x.Id == command.Subject.Id);
+
+            if (selectedSubject == null)
+                selectedSubject = new Subject { Name = command.Subject.Name };
+
+            offerToEdit.SubjectId = selectedSubject.Id;
         }
 
-        offerToEdit.LessonTitle = dto.LessonTitle != null ? dto.LessonTitle : string.Empty;
-        offerToEdit.Price = dto.Price;
-        offerToEdit.City = dto.City;
-        offerToEdit.IsRemote = dto.isOnline;
-        offerToEdit.Description = dto.Description;
-        offerToEdit.Subject = subject;
-        offerToEdit.Place = dto.Place;
-        offerToEdit.TeachingRange = dto.TeachingRange;
+        EntityHelper.UpdateEntity(command, offerToEdit);
 
         await _context.SaveChangesAsync();
+        return _mapper.Map<PrivateLessonOfferDto>(offerToEdit);
     }
 
     public async Task<List<PrivateLessonOfferDto>> SimpleSearchByNameAsync(string searchValue)

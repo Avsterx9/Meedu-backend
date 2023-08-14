@@ -1,10 +1,10 @@
 ﻿using MediatR;
-using Meedu.Commands.DeleteLessonOffer;
+using Meedu.Models.Response;
 using Meedu.Services;
 
-namespace Meedu.Models.Response;
+namespace Meedu.Commands.DeleteLessonOffer;
 
-public sealed class DeleteLessonOfferCommandHandler 
+public sealed class DeleteLessonOfferCommandHandler
     : IRequestHandler<DeleteLessonOfferCommand, DeleteLessonOfferResponse>
 {
     private readonly IPrivateLessonService _privateLessonService;
@@ -14,7 +14,8 @@ public sealed class DeleteLessonOfferCommandHandler
         _privateLessonService = privateLessonService;
     }
 
-    public async Task<DeleteLessonOfferResponse> Handle(DeleteLessonOfferCommand request, CancellationToken cancellationToken)
+    public async Task<DeleteLessonOfferResponse> Handle(DeleteLessonOfferCommand request,
+        CancellationToken cancellationToken)
     {
         return await _privateLessonService.DeleteLessonOfferAsync(request);
     }
