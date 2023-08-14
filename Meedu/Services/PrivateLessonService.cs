@@ -10,6 +10,7 @@ using Meedu.Models;
 using Meedu.Models.Auth;
 using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Response;
+using Meedu.Queries.ExactSearchLessonOffers;
 using Meedu.Queries.GetLessonOfferById;
 using Meedu.Queries.LessonOffersSimpleSearch;
 using Microsoft.EntityFrameworkCore;
@@ -153,70 +154,47 @@ public class PrivateLessonService : IPrivateLessonService
             .ToListAsync();
     }
 
-    public async Task<List<PrivateLessonOfferDto>> AdvancedSearchAsync(LessonOfferAdvancedSearchDto dto)
+    public async Task<IReadOnlyList<PrivateLessonOfferDto>> AdvancedSearchAsync(ExactSearchLessonOffersQuery query)
     {
-        var lessons = await _context.PrivateLessonOffers
+        var lessons = _context.PrivateLessonOffers
             .Include(o => o.CreatedBy)
             .ThenInclude(x => x.Image)
             .Include(o => o.Subject)
+            .AsQueryable();
+
+        lessons = FilterLessonsAsync(query, lessons);
+
+        return await lessons
+            .Select(x => _mapper.Map<PrivateLessonOfferDto>(x))
             .ToListAsync();
-
-        if (!string.IsNullOrEmpty(dto.Subject))
-            lessons = lessons.Where(o => o.Subject.Name.Equals(dto.Subject)).ToList();
-
-        if (!string.IsNullOrEmpty(dto.LastName))
-            lessons = lessons.Where(o => o.CreatedBy.LastName.Equals(dto.LastName)).ToList();
-
-        if (!string.IsNullOrEmpty(dto.FirstName))
-            lessons = lessons.Where(o => o.CreatedBy.FirstName.Equals(dto.FirstName)).ToList();
-
-        if (!string.IsNullOrEmpty(dto.City))
-            lessons = lessons.Where(o => o.City.Equals(dto.City)).ToList();
-
-        if (dto.TeachingRange != null)
-            lessons = lessons.Where(o => o.TeachingRange == dto.TeachingRange).ToList();
-
-        if (dto.IsOnline != null)
-            lessons = lessons.Where(o => o.IsRemote == dto.IsOnline).ToList();
-
-        if (dto.PriceFrom != null)
-            lessons = lessons.Where(o => o.Price > dto.PriceFrom).ToList();
-
-        if (dto.PriceTo != null)
-            lessons = lessons.Where(o => o.Price < dto.PriceTo).ToList();
-
-        return lessons.Select(o => CreateLessonOfferDto(o)).ToList();
     }
 
-    private PrivateLessonOfferDto CreateLessonOfferDto(PrivateLessonOffer offer)
+    private static IQueryable<PrivateLessonOffer> FilterLessonsAsync(
+        ExactSearchLessonOffersQuery query, IQueryable<PrivateLessonOffer> lessons)
     {
-        return new PrivateLessonOfferDto()
-        {
-            Id = offer.Id.ToString(),
-            City = offer.City,
-            Description = offer.Description != null ? offer.Description : "",
-            isOnline = offer.IsRemote,
-            LessonTitle = offer.LessonTitle,
-            Place = offer.Place,
-            Price = offer.Price,
-            Subject = new DtoNameId()
-            {
-                Id = offer.Subject.Id.ToString(),
-                Name = offer.Subject.Name
-            },
-            TeachingRange = offer.TeachingRange != null ? offer.TeachingRange : TeachingRange.Other,
-            User = new DtoNameLastnameId()
-            {
-                Id = offer.CreatedBy.Id.ToString(),
-                FirstName = offer.CreatedBy.FirstName,
-                LastName = offer.CreatedBy.LastName,
-                PhoneNumber = offer.CreatedBy.PhoneNumber,
-                ImageDto = new ImageDto()
-                {
-                    ContentType = offer.CreatedBy.Image == null ? "" : offer.CreatedBy.Image.ContentType,
-                    Data = offer.CreatedBy.Image == null ? "" : Convert.ToBase64String(offer.CreatedBy.Image.Data)
-                }
-            }
-        };
+        if (!string.IsNullOrEmpty(query.Subject))
+            lessons = lessons.Where(o => o.Subject.Name.Contains(query.Subject));
+
+        if (!string.IsNullOrEmpty(query.LastName))
+            lessons = lessons.Where(o => o.CreatedBy.LastName.Contains(query.LastName));
+
+        if (!string.IsNullOrEmpty(query.FirstName))
+            lessons = lessons.Where(o => o.CreatedBy.FirstName.Contains(query.FirstName));
+
+        if (!string.IsNullOrEmpty(query.City))
+            lessons = lessons.Where(o => o.City.Contains(query.City));
+
+        if (query.TeachingRange != null)
+            lessons = lessons.Where(o => o.TeachingRange == query.TeachingRange);
+
+        lessons = lessons.Where(o => o.IsRemote == query.IsRemote);
+
+        if (query.PriceFrom != null)
+            lessons = lessons.Where(o => o.Price > query.PriceFrom);
+
+        if (query.PriceTo != null)
+            lessons = lessons.Where(o => o.Price < query.PriceTo);
+
+        return lessons;
     }
 }

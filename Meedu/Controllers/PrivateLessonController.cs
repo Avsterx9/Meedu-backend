@@ -4,6 +4,7 @@ using Meedu.Commands.DeleteLessonOffer;
 using Meedu.Commands.UpdateLessonOffer;
 using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Response;
+using Meedu.Queries.ExactSearchLessonOffers;
 using Meedu.Queries.GetAllLessonOffers;
 using Meedu.Queries.GetLessonOfferById;
 using Meedu.Queries.GetLessonOffersByUser;
@@ -12,6 +13,7 @@ using Meedu.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Update.Internal;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Meedu.Controllers;
@@ -77,16 +79,18 @@ public class PrivateLessonController : ControllerBase
     }
 
     [HttpGet("search")]
-    public async Task<ActionResult<List<PrivateLessonOfferDto>>> SimpleSearchByNameAsync(
+    public async Task<ActionResult<IReadOnlyList<PrivateLessonOfferDto>>> SimpleSearchByNameAsync(
         [FromBody] SearchLessonOffersQuery query)
     {
         var res = await _sender.Send(query);
         return Ok(res);
     }
 
-    //[HttpPost("advancedSearch")]
-    //public async Task<ActionResult<List<PrivateLessonOfferDto>>> AdvancedSearch(LessonOfferAdvancedSearchDto dto)
-    //{
-    //    return Ok(await privateLessonService.AdvancedSearchAsync(dto));
-    //}
+    [HttpPost("advancedSearch")]
+    public async Task<ActionResult<IReadOnlyList<PrivateLessonOfferDto>>> AdvancedSearchAsync(
+        [FromQuery] ExactSearchLessonOffersQuery query)
+    {
+        var res = await _sender.Send(query);
+        return Ok(res);
+    }
 }

@@ -3,6 +3,7 @@ using Meedu.Commands.DeleteLessonOffer;
 using Meedu.Commands.UpdateLessonOffer;
 using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Response;
+using Meedu.Queries.ExactSearchLessonOffers;
 using Meedu.Queries.GetLessonOfferById;
 using Meedu.Queries.LessonOffersSimpleSearch;
 
@@ -17,5 +18,5 @@ public interface IPrivateLessonService
     Task<PrivateLessonOfferDto> GetByIdAsync(GetLessonOfferByIdQuery query);
     Task<PrivateLessonOfferDto> UpdateLessonOfferAsync(UpdateLessonOfferCommand command);
     Task<IReadOnlyList<PrivateLessonOfferDto>> SimpleSearchByNameAsync(SearchLessonOffersQuery query);
-    Task<List<PrivateLessonOfferDto>> AdvancedSearchAsync(LessonOfferAdvancedSearchDto dto);
+    Task<IReadOnlyList<PrivateLessonOfferDto>> AdvancedSearchAsync(ExactSearchLessonOffersQuery query);
 }
