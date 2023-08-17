@@ -1,4 +1,5 @@
-﻿using Meedu.Models.PrivateLessonOffer;
+﻿using Meedu.Commands.AddSchedule;
+using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Reservations.UserReservations;
 using Meedu.Models.Schedule;
 
@@ -6,7 +7,7 @@ namespace Meedu.Services;
 
 public interface IScheduleService
 {
-    Task AddScheduleAsync(ScheduleDto dto);
+    Task<ScheduleDto> AddScheduleAsync(AddScheduleCommand command);
     Task DeleteScheduleAsync(Guid scheduleId);
     Task<List<ScheduleDto>> GetScheduleByLessonOfferId(Guid lessonId);
     Task AddTimestampToScheduleAsync(ScheduleTimespanDto dto, Guid scheduleId);

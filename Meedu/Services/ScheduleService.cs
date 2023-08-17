@@ -1,4 +1,6 @@
-﻿using Meedu.Entities;
+﻿using AutoMapper;
+using Meedu.Commands.AddSchedule;
+using Meedu.Entities;
 using Meedu.Exceptions;
 using Meedu.Helpers;
 using Meedu.Models;
@@ -14,23 +16,28 @@ public class ScheduleService : IScheduleService
     private readonly MeeduDbContext _context;
     private readonly ILogger<ScheduleService> _logger;
     private readonly IUserContextService _userContextService;
+    private readonly IMapper _mapper;
 
-    public ScheduleService(MeeduDbContext dbContext, ILogger<ScheduleService> logger, IUserContextService userContextService)
+    public ScheduleService(
+        MeeduDbContext dbContext, 
+        ILogger<ScheduleService> logger, 
+        IUserContextService userContextService,
+        IMapper mapper)
     {
         _context = dbContext;
         _logger = logger;
         _userContextService = userContextService;
+        _mapper = mapper;
     }
 
-    public async Task AddScheduleAsync(ScheduleDto dto)
+    public async Task<ScheduleDto> AddScheduleAsync(AddScheduleCommand command)
     {
         var userId = _userContextService.GetUserIdFromToken();
 
         var schedule = await _context.DaySchedules
-            .Include(x => x.ScheduleTimestamps)
-            .FirstOrDefaultAsync(ds =>
-                ds.User.Id == userId &&
-                ds.DayOfWeek == dto.DayOfWeek);
+            .FirstOrDefaultAsync(x =>
+                x.User.Id == userId 
+                && x.DayOfWeek == command.DayOfWeek);
 
         if (schedule != null)
             throw new BadRequestException(ExceptionMessages.ScheduleAlreadyExists);
@@ -38,18 +45,14 @@ public class ScheduleService : IScheduleService
         var newSchedule = new DaySchedule
         {
             Created = DateTime.Now,
-            DayOfWeek = dto.DayOfWeek,
-            UserId = userId,
-            ScheduleTimestamps = dto.ScheduleTimespans.Select(x => new ScheduleTimespan
-            {
-                AvailableFrom = DateTime.Parse(x.AvailableFrom),
-                AvailableTo = DateTime.Parse(x.AvailableTo),
-                LessonReservations = new List<LessonReservation>()
-            }).ToList()
+            DayOfWeek = command.DayOfWeek,
+            UserId = userId
         };
 
         await _context.DaySchedules.AddAsync(newSchedule);
         await _context.SaveChangesAsync();
+
+        return _mapper.Map<ScheduleDto>(newSchedule);   
     }
 
     public async Task DeleteScheduleAsync(Guid scheduleId)
@@ -343,7 +346,7 @@ public class ScheduleService : IScheduleService
             Id = entity.Id.ToString(),
             DayOfWeek = entity.DayOfWeek,
             //Subject = new SubjectDto(),
-            ScheduleTimespans = new List<ScheduleTimespanDto>()
+            ScheduleTimestamps = new List<ScheduleTimespanDto>()
         };
 
         if(entity.ScheduleTimestamps != null && entity.ScheduleTimestamps.Count != 0)
@@ -375,7 +378,7 @@ public class ScheduleService : IScheduleService
                         timespanDto.LessonReservations.Add(reservationDto);
                     }
                 }
-                scheduleDto.ScheduleTimespans.Add(timespanDto);
+                scheduleDto.ScheduleTimestamps.Add(timespanDto);
             }
         }
         return scheduleDto;

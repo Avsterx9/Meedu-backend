@@ -6,7 +6,7 @@ public class DaySchedule
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; set; }
-    public Entities.Enums.DayOfWeek DayOfWeek { get; set; }
+    public DayOfWeek DayOfWeek { get; set; }
     public DateTime Created { get; set; }
     public Guid UserId { get; set; }
 
