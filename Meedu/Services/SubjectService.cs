@@ -1,41 +1,46 @@
 ﻿using AutoMapper;
+using Meedu.Commands.AddSubject;
 using Meedu.Entities;
+using Meedu.Helpers;
 using Meedu.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Meedu.Services
+namespace Meedu.Services;
+
+public class SubjectService : ISubjectService
 {
-    public interface ISubjectService
+    private readonly MeeduDbContext _context;
+    private readonly IMapper _mapper;
+
+    public SubjectService(MeeduDbContext dbContext, IMapper mapper)
     {
-        Task<List<SubjectDto>> GetAll();
-        Task AddSubject(String name);
+        _context = dbContext;
+        _mapper = mapper;
     }
 
-    public class SubjectService : ISubjectService
+    public async Task<IReadOnlyList<SubjectDto>> GetAllAsync()
     {
-        private readonly MeeduDbContext _dbContext;
-        private readonly IMapper _mapper;
-        public SubjectService(MeeduDbContext dbContext, IMapper mapper)
-        {
-            _dbContext = dbContext;
-            _mapper = mapper;
-        }
+        return await _context.Subjects
+            .Select(x => _mapper.Map<SubjectDto>(x))
+            .ToListAsync();
+    }
 
-        public async Task<List<SubjectDto>> GetAll()
-        {
-            return await _dbContext.Subjects
-                .Select(x => _mapper.Map<SubjectDto>(x))
-                .ToListAsync();
-        }
+    public async Task<SubjectDto> AddSubjectAsync(AddSubjectCommand command)
+    {
+        var existingSubject = await _context.Subjects
+            .FirstOrDefaultAsync(s => s.Name == command.name || s.Name == command.name.ToLower());  
 
-        public async Task AddSubject(String name)
-        {
-            var exists = await _dbContext.Subjects.FirstOrDefaultAsync(s => s.Name == name || s.Name == name.ToLower());  
+        if(existingSubject != null)
+            throw new BadHttpRequestException(ExceptionMessages.SubjectAlreadyExists);
 
-            if(exists != null)
-                throw new BadHttpRequestException("SubjectAlreadyExists");
-            
-            await _dbContext.Subjects.AddAsync(exists);
-        }
+        var newSubject = new Subject
+        {
+            Name = command.name,
+        };
+
+        await _context.Subjects.AddAsync(newSubject);
+        await _context.SaveChangesAsync();
+        
+        return _mapper.Map<SubjectDto>(newSubject);
     }
 }

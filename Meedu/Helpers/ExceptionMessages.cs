@@ -11,7 +11,6 @@ public static class ExceptionMessages
 
     // LESSON OFFERS
     public static readonly string LessonOfferNotFound = "Lesson offer not found";
-    public static readonly string SubjectNotFound = "Subject offer not found";
 
     // SCHEDULES
     public static readonly string ScheduleAlreadyExists = "Schedule already exists";
@@ -25,4 +24,8 @@ public static class ExceptionMessages
     public static readonly string YouHaveLessonReservedAtThisTime = "You have lesson reserved at this time";
     public static readonly string DateIsAlreadyReserved = "Date is already reserved";
     public static readonly string ReservationDayIsIncorrect = "Reservation day is incorrect";
+
+    // SUBJECTS
+    public static readonly string SubjectNotFound = "Subject offer not found";
+    public static readonly string SubjectAlreadyExists = "Subject already Exists";
 }

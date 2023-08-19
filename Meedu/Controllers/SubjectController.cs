@@ -1,31 +1,29 @@
-﻿using Meedu.Entities;
+﻿using MediatR;
+using Meedu.Commands.AddSubject;
 using Meedu.Models;
-using Meedu.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Meedu.Controllers
+namespace Meedu.Controllers;
+
+[Route("api/subjects")]
+[ApiController]
+public class SubjectController : ControllerBase
 {
-    [Route("api/subjects")]
-    [ApiController]
-    public class SubjectController : ControllerBase
+    private readonly ISender _sender;
+
+    public SubjectController(ISender sender)
     {
-        private readonly ISubjectService _subjectService;
+        _sender = sender;
+    }
+    [HttpGet("list")]
+    public async Task<ActionResult<IReadOnlyList<SubjectDto>>> GetAll()
+    {
+        return Ok(await _sender.Send(new GetAllSubjectsQuery()));
+    }
 
-        public SubjectController(ISubjectService _subjectService)
-        {
-            this._subjectService = _subjectService;
-        }
-        [HttpGet("list")]
-        public async Task<ActionResult<List<SubjectDto>>> GetAll()
-        {
-            return Ok(await _subjectService.GetAll());
-        }
-
-        [HttpPost("add")]
-        public async Task<ActionResult> Add([FromBody] String name)
-        {
-            await _subjectService.AddSubject(name);
-            return Ok();
-        }
+    [HttpPost("add")]
+    public async Task<ActionResult> Add([FromBody] AddSubjectCommand command)
+    {
+        return Ok(await _sender.Send(command));
     }
 }
