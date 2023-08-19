@@ -1,4 +1,6 @@
-﻿using Meedu.Models.PrivateLessonOffer;
+﻿using MediatR;
+using Meedu.Commands.AddSchedule;
+using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Reservations.UserReservations;
 using Meedu.Models.Schedule;
 using Meedu.Services;
@@ -12,18 +14,19 @@ namespace Meedu.Controllers;
 public class ScheduleController : ControllerBase
 {
     private readonly IScheduleService _scheduleService;
+    private readonly ISender _sender;
 
-    public ScheduleController(IScheduleService scheduleService)
+    public ScheduleController(IScheduleService scheduleService, ISender sender)
     {
         _scheduleService = scheduleService;
+        _sender = sender;
     }
 
     [HttpPost("add")]
     [Authorize]
-    public async Task<ActionResult> AddSchedule(ScheduleDto dto)
+    public async Task<ActionResult> AddSchedule([FromBody] AddScheduleCommand command)
     {
-        await _scheduleService.AddScheduleAsync(dto);
-        return Ok();
+        return Ok(await _sender.Send(command));
     }
 
     [HttpDelete("delete")]

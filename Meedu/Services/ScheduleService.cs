@@ -97,8 +97,8 @@ public class ScheduleService : IScheduleService
             .FirstOrDefaultAsync(d => d.Id == scheduleId)
             ?? throw new BadRequestException(ExceptionMessages.ScheduleNotFound);
 
-        var availableFrom = DateTime.Parse(dto.AvailableFrom);
-        var availableTo = DateTime.Parse(dto.AvailableTo);
+        var availableFrom = dto.AvailableFrom;
+        var availableTo = dto.AvailableTo;
 
         if (schedule.ScheduleTimestamps.Any(x => x.AvailableFrom.Hour == availableFrom.Hour))
             throw new BadRequestException(ExceptionMessages.TimestampNotAvailable);
@@ -106,7 +106,7 @@ public class ScheduleService : IScheduleService
         var timespan = new ScheduleTimespan()
         {
             AvailableFrom = availableFrom,
-            AvailableTo = DateTime.Parse(dto.AvailableTo),
+            AvailableTo = dto.AvailableTo,
         };
 
         schedule.ScheduleTimestamps.Add(timespan);
@@ -150,7 +150,7 @@ public class ScheduleService : IScheduleService
             throw new BadRequestException(ExceptionMessages.DateIsAlreadyReserved);
 
         var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Id == new Guid(dto.ReservedBy.Id))
+            .FirstOrDefaultAsync(u => u.Id == dto.ReservedBy.Id)
             ?? throw new BadRequestException(ExceptionMessages.UserNotFound);
 
         if (dto.ReservationDate.DayOfWeek.ToString() != timestamp.DaySchedule.DayOfWeek.ToString())
@@ -198,7 +198,7 @@ public class ScheduleService : IScheduleService
             ReservationDate = x.ReservationDate,
             ReservedBy = new DtoNameId
             {
-                Id = x.ReservedBy.Id.ToString(),
+                Id = x.ReservedBy.Id,
                 Name = $"{x.ReservedBy.FirstName} {x.ReservedBy.LastName}"
             }
         }).ToList();
@@ -343,7 +343,7 @@ public class ScheduleService : IScheduleService
     {
         var scheduleDto = new ScheduleDto()
         {
-            Id = entity.Id.ToString(),
+            Id = entity.Id,
             DayOfWeek = entity.DayOfWeek,
             //Subject = new SubjectDto(),
             ScheduleTimestamps = new List<ScheduleTimespanDto>()
@@ -355,9 +355,9 @@ public class ScheduleService : IScheduleService
             {
                 var timespanDto = new ScheduleTimespanDto()
                 {
-                    Id = entityTimestamp.Id.ToString(),
-                    AvailableFrom = entityTimestamp.AvailableFrom.ToString("HH:mm"),
-                    AvailableTo = entityTimestamp.AvailableTo.ToString("HH:mm"),
+                    Id = entityTimestamp.Id,
+                    AvailableFrom = entityTimestamp.AvailableFrom,
+                    AvailableTo = entityTimestamp.AvailableTo,
                     LessonReservations = new List<LessonReservationDto>()
                 };
 
@@ -371,7 +371,7 @@ public class ScheduleService : IScheduleService
                             ReservationDate = entityReservation.ReservationDate,
                             ReservedBy = new DtoNameId()
                             {
-                                Id = entityReservation.ReservedBy.Id.ToString(),
+                                Id = entityReservation.ReservedBy.Id,
                                 Name = entityReservation.ReservedBy.LastName
                             }
                         };

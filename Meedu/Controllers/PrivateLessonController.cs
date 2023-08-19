@@ -80,7 +80,7 @@ public class PrivateLessonController : ControllerBase
 
     [HttpGet("search")]
     public async Task<ActionResult<IReadOnlyList<PrivateLessonOfferDto>>> SimpleSearchByNameAsync(
-        [FromBody] SearchLessonOffersQuery query)
+        [FromQuery] SearchLessonOffersQuery query)
     {
         var res = await _sender.Send(query);
         return Ok(res);

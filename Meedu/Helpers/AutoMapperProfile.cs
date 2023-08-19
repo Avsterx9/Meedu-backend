@@ -22,15 +22,19 @@ public class AutoMapperProfile : Profile
 				Data = src.Image == null ? string.Empty : Convert.ToBase64String(src.Image.Data)
             }));
 
-		CreateMap<CreateLessonOfferCommand, PrivateLessonOffer>();
+		CreateMap<CreateLessonOfferCommand, PrivateLessonOffer>()
+			.ForMember(x => x.IsRemote,
+				o => o.MapFrom(src => src.isOnline))
+			.ForMember(x => x.Subject,
+				o => o.MapFrom(src => new Subject()));
 
-		CreateMap<PrivateLessonOffer, PrivateLessonOfferDto>()
+        CreateMap<PrivateLessonOffer, PrivateLessonOfferDto>()
 			.ForMember(x => x.isOnline,
 				o => o.MapFrom(src => src.IsRemote))
 			.ForMember(x => x.Subject,
 				o => o.MapFrom(src => new DtoNameId
 				{
-					Id = src.SubjectId.ToString(),
+					Id = src.SubjectId,
 					Name = src.Subject.Name
 				}))
 			.ForMember(x => x.User,
@@ -56,6 +60,8 @@ public class AutoMapperProfile : Profile
 			.ForMember(x => x.TimespanId, o => o.MapFrom(src => src.ScheduleTimespan.Id.ToString()));
 
 		CreateMap<ScheduleTimespan, ScheduleTimespanDto>();
+
+		CreateMap<Subject, SubjectDto>();
 
 		CreateMap<DaySchedule, ScheduleDto>()
 			.ForMember(x => x.ScheduleTimestamps, o => o.MapFrom(src => src.ScheduleTimestamps));

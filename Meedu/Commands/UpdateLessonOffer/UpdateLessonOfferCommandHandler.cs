@@ -15,6 +15,6 @@ public sealed class UpdateLessonOfferCommandHandler : IRequestHandler<UpdateLess
 
     public async Task<PrivateLessonOfferDto> Handle(UpdateLessonOfferCommand request, CancellationToken cancellationToken)
     {
-        return await _privateLessonService.DeleteLessonOfferAsync(request);
+        return await _privateLessonService.UpdateLessonOfferAsync(request);
     }
 }

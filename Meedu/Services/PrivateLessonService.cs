@@ -78,8 +78,6 @@ public class PrivateLessonService : IPrivateLessonService
 
          return await _context.PrivateLessonOffers
             .Include(s => s.Subject)
-            .Include(s => s.CreatedBy)
-            .ThenInclude(x => x.Image)
             .Where(x => x.CreatedById == userId)
             .Select(x => _mapper.Map<PrivateLessonOfferDto>(x))
             .AsNoTracking()
@@ -122,7 +120,7 @@ public class PrivateLessonService : IPrivateLessonService
     public async Task<PrivateLessonOfferDto> UpdateLessonOfferAsync(UpdateLessonOfferCommand command)
     {
         var offerToEdit = await _context.PrivateLessonOffers
-            .Include(x => x.CreatedBy)
+            .Include(x => x.Subject)
             .FirstOrDefaultAsync(x => x.Id == command.Id)
             ?? throw new NotFoundException(ExceptionMessages.LessonOfferNotFound);
 
@@ -137,7 +135,7 @@ public class PrivateLessonService : IPrivateLessonService
             offerToEdit.SubjectId = selectedSubject.Id;
         }
 
-        EntityHelper.UpdateEntity(command, offerToEdit);
+        EntityHelper.UpdateEntity(offerToEdit, command);
 
         await _context.SaveChangesAsync();
         return _mapper.Map<PrivateLessonOfferDto>(offerToEdit);

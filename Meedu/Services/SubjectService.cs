@@ -1,4 +1,5 @@
-﻿using Meedu.Entities;
+﻿using AutoMapper;
+using Meedu.Entities;
 using Meedu.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,15 +14,18 @@ namespace Meedu.Services
     public class SubjectService : ISubjectService
     {
         private readonly MeeduDbContext _dbContext;
-        public SubjectService(MeeduDbContext _dbContext)
+        private readonly IMapper _mapper;
+        public SubjectService(MeeduDbContext dbContext, IMapper mapper)
         {
-            this._dbContext = _dbContext;
+            _dbContext = dbContext;
+            _mapper = mapper;
         }
 
         public async Task<List<SubjectDto>> GetAll()
         {
-            var subjects = await _dbContext.Subjects.ToListAsync();
-            return subjects.Select(s => new SubjectDto() { Id = s.Id.ToString(), Name = s.Name }).ToList();
+            return await _dbContext.Subjects
+                .Select(x => _mapper.Map<SubjectDto>(x))
+                .ToListAsync();
         }
 
         public async Task AddSubject(String name)

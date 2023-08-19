@@ -14,6 +14,6 @@ public record UpdateLessonOfferCommand(
     Place Place,
     string Description,
     TeachingRange TeachingRange,
-    int UserId,
+    Guid UserId,
     SubjectDto Subject
     ) : IRequest<PrivateLessonOfferDto>;

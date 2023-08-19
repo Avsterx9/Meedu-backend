@@ -1,4 +1,6 @@
-﻿namespace Meedu.Helpers;
+﻿using Meedu.Models;
+
+namespace Meedu.Helpers;
 
 public static class EntityHelper
 {
@@ -16,6 +18,9 @@ public static class EntityHelper
 
                 var oldValue = baseProp.GetValue(baseEntity);
                 var newValue = newChangesProp.GetValue(objectWithChanges);
+
+                if (newValue != null && newValue.GetType() == typeof(SubjectDto))
+                    continue;
 
                 if ((oldValue == null && newValue != null) || (oldValue != null && !oldValue.Equals(newValue)))
                 {
