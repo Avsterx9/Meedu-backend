@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Meedu.Commands.AddSubject;
 using Meedu.Models;
+using Meedu.Queries.GetAllSubjects;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Meedu.Controllers;
@@ -15,6 +16,7 @@ public class SubjectController : ControllerBase
     {
         _sender = sender;
     }
+
     [HttpGet("list")]
     public async Task<ActionResult<IReadOnlyList<SubjectDto>>> GetAll()
     {
