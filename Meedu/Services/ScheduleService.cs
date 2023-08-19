@@ -75,21 +75,6 @@ public class ScheduleService : IScheduleService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<List<ScheduleDto>> GetScheduleByLessonOfferId(Guid lessonId)
-    {
-        //var lessonGuid = ValidateGuid(lessonId);
-
-        //var schedules = await _dbContext.DaySchedules
-        //    .Include(u => u.User)
-        //    .Include(u => u.ScheduleTimestamps)
-        //    .Where(ds => ds.PrivateLessonOffer.Id == lessonGuid)
-        //    .ToListAsync()
-        //    ?? throw new NotFoundException("ScheduleNotFound");
-
-        //return schedules.Select(x => CreateDtoFromEntity(x)).OrderBy(x => x.DayOfWeek).ToList();
-        return new List<ScheduleDto?>();
-    }
-
     public async Task AddTimestampToScheduleAsync(ScheduleTimespanDto dto, Guid scheduleId)
     {
         var schedule = await _context.DaySchedules
