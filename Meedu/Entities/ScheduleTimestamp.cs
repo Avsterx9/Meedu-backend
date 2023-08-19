@@ -1,10 +1,10 @@
 ﻿namespace Meedu.Entities;
 
-public class ScheduleTimespan
+public class ScheduleTimestamp
 {
     public Guid Id { get; set; }
-    public DateTime AvailableFrom { get; set; }
-    public DateTime AvailableTo { get; set; }
+    public string AvailableFrom { get; set; }
+    public string AvailableTo { get; set; }
     public Guid DayScheduleId { get; set; }
 
     public virtual List<LessonReservation> LessonReservations { get; set; } = null!;

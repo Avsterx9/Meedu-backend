@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
 using Meedu.Commands.AddSchedule;
+using Meedu.Commands.AddTimestamp;
+using Meedu.Commands.DeleteSchedule;
 using Meedu.Entities;
 using Meedu.Exceptions;
 using Meedu.Helpers;
 using Meedu.Models;
 using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Reservations.UserReservations;
+using Meedu.Models.Response;
 using Meedu.Models.Schedule;
 using Microsoft.EntityFrameworkCore;
 
@@ -55,12 +58,12 @@ public class ScheduleService : IScheduleService
         return _mapper.Map<ScheduleDto>(newSchedule);   
     }
 
-    public async Task DeleteScheduleAsync(Guid scheduleId)
+    public async Task<DeleteScheduleResponse> DeleteScheduleAsync(DeleteScheduleCommand command)
     {
         var schedule = await _context.DaySchedules
             .Include(x => x.ScheduleTimestamps)
             .ThenInclude(x => x.LessonReservations)
-            .FirstOrDefaultAsync(x => x.Id == scheduleId)
+            .FirstOrDefaultAsync(x => x.Id == command.ScheduleId)
             ?? throw new NotFoundException(ExceptionMessages.ScheduleNotFound);
 
         foreach(var timestamp in schedule.ScheduleTimestamps)
@@ -73,29 +76,31 @@ public class ScheduleService : IScheduleService
         _context.DaySchedules.Remove(schedule);
 
         await _context.SaveChangesAsync();
+        return new DeleteScheduleResponse(true, "Schedule deleted successfully");
     }
 
-    public async Task AddTimestampToScheduleAsync(ScheduleTimespanDto dto, Guid scheduleId)
+    public async Task<ScheduleDto> AddTimestampToScheduleAsync(AddTimestampCommand command)
     {
-        var schedule = await _context.DaySchedules
-            .Include(d => d.ScheduleTimestamps)
-            .FirstOrDefaultAsync(d => d.Id == scheduleId)
-            ?? throw new BadRequestException(ExceptionMessages.ScheduleNotFound);
+        //var schedule = await _context.DaySchedules
+        //    .Include(d => d.ScheduleTimestamps)
+        //    .FirstOrDefaultAsync(d => d.Id == command.ScheduleId)
+        //    ?? throw new BadRequestException(ExceptionMessages.ScheduleNotFound);
 
-        var availableFrom = dto.AvailableFrom;
-        var availableTo = dto.AvailableTo;
+        //var availableFrom = dto.AvailableFrom;
+        //var availableTo = dto.AvailableTo;
 
-        if (schedule.ScheduleTimestamps.Any(x => x.AvailableFrom.Hour == availableFrom.Hour))
-            throw new BadRequestException(ExceptionMessages.TimestampNotAvailable);
+        //if (schedule.ScheduleTimestamps.Any(x => x.AvailableFrom.Hour == availableFrom.Hour))
+        //    throw new BadRequestException(ExceptionMessages.TimestampNotAvailable);
 
-        var timespan = new ScheduleTimespan()
-        {
-            AvailableFrom = availableFrom,
-            AvailableTo = dto.AvailableTo,
-        };
+        //var timespan = new ScheduleTimespan()
+        //{
+        //    AvailableFrom = availableFrom,
+        //    AvailableTo = dto.AvailableTo,
+        //};
 
-        schedule.ScheduleTimestamps.Add(timespan);
-        await _context.SaveChangesAsync();
+        //schedule.ScheduleTimestamps.Add(timespan);
+        //await _context.SaveChangesAsync();
+        return new ScheduleDto();
     }
 
     public async Task DeleteTimespanFromScheduleAsync(Guid timespanId)
@@ -112,42 +117,42 @@ public class ScheduleService : IScheduleService
 
     public async Task AddReservationAsync(LessonReservationDto dto, Guid timespanId)
     {
-        var userId = _userContextService.GetUserIdFromToken();
+        //var userId = _userContextService.GetUserIdFromToken();
 
-        var timestamp = await _context.ScheduleTimespans
-            .Include(x => x.LessonReservations)
-            .Include(x => x.DaySchedule)
-            .FirstOrDefaultAsync(t => t.Id == timespanId)
-            ?? throw new BadRequestException(ExceptionMessages.TimestampNotFound);
+        //var timestamp = await _context.ScheduleTimespans
+        //    .Include(x => x.LessonReservations)
+        //    .Include(x => x.DaySchedule)
+        //    .FirstOrDefaultAsync(t => t.Id == timespanId)
+        //    ?? throw new BadRequestException(ExceptionMessages.TimestampNotFound);
 
-        if (timestamp.LessonReservations == null)
-            timestamp.LessonReservations = new List<LessonReservation>();
+        //if (timestamp.LessonReservations == null)
+        //    timestamp.LessonReservations = new List<LessonReservation>();
 
-        var existingReservations = timestamp.LessonReservations
-            .Where(x => x.ReservedById == userId && x.ReservationDate == dto.ReservationDate)
-            .ToList();
+        //var existingReservations = timestamp.LessonReservations
+        //    .Where(x => x.ReservedById == userId && x.ReservationDate == dto.ReservationDate)
+        //    .ToList();
 
-        if(existingReservations.Any(x => 
-            TimeOnly.FromDateTime(x.ScheduleTimespan.AvailableFrom) == TimeOnly.FromDateTime(timestamp.AvailableFrom)))
-            throw new BadRequestException(ExceptionMessages.YouHaveLessonReservedAtThisTime);
+        //if(existingReservations.Any(x => 
+        //    TimeOnly.FromDateTime(x.ScheduleTimespan.AvailableFrom) == TimeOnly.FromDateTime(timestamp.AvailableFrom)))
+        //    throw new BadRequestException(ExceptionMessages.YouHaveLessonReservedAtThisTime);
 
-        if(timestamp.LessonReservations.Any(r => r.ReservationDate == dto.ReservationDate))
-            throw new BadRequestException(ExceptionMessages.DateIsAlreadyReserved);
+        //if(timestamp.LessonReservations.Any(r => r.ReservationDate == dto.ReservationDate))
+        //    throw new BadRequestException(ExceptionMessages.DateIsAlreadyReserved);
 
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Id == dto.ReservedBy.Id)
-            ?? throw new BadRequestException(ExceptionMessages.UserNotFound);
+        //var user = await _context.Users
+        //    .FirstOrDefaultAsync(u => u.Id == dto.ReservedBy.Id)
+        //    ?? throw new BadRequestException(ExceptionMessages.UserNotFound);
 
-        if (dto.ReservationDate.DayOfWeek.ToString() != timestamp.DaySchedule.DayOfWeek.ToString())
-            throw new BadRequestException(ExceptionMessages.ReservationDayIsIncorrect);
+        //if (dto.ReservationDate.DayOfWeek.ToString() != timestamp.DaySchedule.DayOfWeek.ToString())
+        //    throw new BadRequestException(ExceptionMessages.ReservationDayIsIncorrect);
 
-        timestamp.LessonReservations.Add(new LessonReservation()
-        {
-            ReservedBy = user,
-            ReservationDate = dto.ReservationDate
-        });
+        //timestamp.LessonReservations.Add(new LessonReservation()
+        //{
+        //    ReservedBy = user,
+        //    ReservationDate = dto.ReservationDate
+        //});
 
-        await _context.SaveChangesAsync();
+        //await _context.SaveChangesAsync();
     }
 
     public async Task DeleteReservationAsync(Guid reservationId)
@@ -326,47 +331,48 @@ public class ScheduleService : IScheduleService
 
     private ScheduleDto CreateDtoFromEntity(DaySchedule entity)
     {
-        var scheduleDto = new ScheduleDto()
-        {
-            Id = entity.Id,
-            DayOfWeek = entity.DayOfWeek,
-            //Subject = new SubjectDto(),
-            ScheduleTimestamps = new List<ScheduleTimespanDto>()
-        };
+        //var scheduleDto = new ScheduleDto()
+        //{
+        //    Id = entity.Id,
+        //    DayOfWeek = entity.DayOfWeek,
+        //    //Subject = new SubjectDto(),
+        //    ScheduleTimestamps = new List<ScheduleTimespanDto>()
+        //};
 
-        if(entity.ScheduleTimestamps != null && entity.ScheduleTimestamps.Count != 0)
-        {
-            foreach(var entityTimestamp in entity.ScheduleTimestamps)
-            {
-                var timespanDto = new ScheduleTimespanDto()
-                {
-                    Id = entityTimestamp.Id,
-                    AvailableFrom = entityTimestamp.AvailableFrom,
-                    AvailableTo = entityTimestamp.AvailableTo,
-                    LessonReservations = new List<LessonReservationDto>()
-                };
+        //if(entity.ScheduleTimestamps != null && entity.ScheduleTimestamps.Count != 0)
+        //{
+        //    foreach(var entityTimestamp in entity.ScheduleTimestamps)
+        //    {
+        //        var timespanDto = new ScheduleTimespanDto()
+        //        {
+        //            Id = entityTimestamp.Id,
+        //            AvailableFrom = entityTimestamp.AvailableFrom.ToString("HH:mm"),
+        //            AvailableTo = entityTimestamp.AvailableTo,
+        //            LessonReservations = new List<LessonReservationDto>()
+        //        };
 
-                if(entityTimestamp.LessonReservations != null && entityTimestamp.LessonReservations.Count != 0)
-                {
-                    foreach(var entityReservation in entityTimestamp.LessonReservations)
-                    {
-                        var reservationDto = new LessonReservationDto()
-                        {
-                            Id = entityReservation.Id.ToString(),
-                            ReservationDate = entityReservation.ReservationDate,
-                            ReservedBy = new DtoNameId()
-                            {
-                                Id = entityReservation.ReservedBy.Id,
-                                Name = entityReservation.ReservedBy.LastName
-                            }
-                        };
-                        timespanDto.LessonReservations.Add(reservationDto);
-                    }
-                }
-                scheduleDto.ScheduleTimestamps.Add(timespanDto);
-            }
-        }
-        return scheduleDto;
+        //        if(entityTimestamp.LessonReservations != null && entityTimestamp.LessonReservations.Count != 0)
+        //        {
+        //            foreach(var entityReservation in entityTimestamp.LessonReservations)
+        //            {
+        //                var reservationDto = new LessonReservationDto()
+        //                {
+        //                    Id = entityReservation.Id.ToString(),
+        //                    ReservationDate = entityReservation.ReservationDate,
+        //                    ReservedBy = new DtoNameId()
+        //                    {
+        //                        Id = entityReservation.ReservedBy.Id,
+        //                        Name = entityReservation.ReservedBy.LastName
+        //                    }
+        //                };
+        //                timespanDto.LessonReservations.Add(reservationDto);
+        //            }
+        //        }
+        //        scheduleDto.ScheduleTimestamps.Add(timespanDto);
+        //    }
+        //}
+        //return scheduleDto;
+        return new ScheduleDto();
     }
 
     private Guid ValidateGuid(string guidToValidate)

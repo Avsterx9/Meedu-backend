@@ -11,5 +11,5 @@ public class DaySchedule
     public Guid UserId { get; set; }
 
     public virtual User User { get; set; } = null!;
-    public virtual List<ScheduleTimespan> ScheduleTimestamps { get; set; } = null!;
+    public virtual List<ScheduleTimestamp> ScheduleTimestamps { get; set; } = null!;
 }

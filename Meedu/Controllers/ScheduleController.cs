@@ -33,14 +33,14 @@ public class ScheduleController : ControllerBase
     [Authorize]
     public async Task<ActionResult> DeleteSchedule(Guid scheduleId)
     {
-        await _scheduleService.DeleteScheduleAsync(scheduleId);
+        //await _scheduleService.DeleteScheduleAsync(scheduleId);
         return Ok();
     }
 
     [HttpGet("getByLessonOffer")]
     public async Task<ActionResult<List<ScheduleDto>>> GetSchedule(Guid lessonOfferId)
     {
-        return Ok(await _scheduleService.GetScheduleByLessonOfferId(lessonOfferId));
+        return Ok();
     }
 
     [HttpPost("timespans/add")]
@@ -48,7 +48,7 @@ public class ScheduleController : ControllerBase
     public async Task<ActionResult> AddTimespanToSchedule(
         [FromBody] ScheduleTimespanDto scheduleTimespanDto, Guid scheduleId)
     {
-        await _scheduleService.AddTimestampToScheduleAsync(scheduleTimespanDto, scheduleId);
+        //await _scheduleService.AddTimestampToScheduleAsync(scheduleTimespanDto, scheduleId);
         return Ok();
     }
 
