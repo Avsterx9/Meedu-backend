@@ -16,9 +16,10 @@ public static class ExceptionMessages
     public static readonly string ScheduleAlreadyExists = "Schedule already exists";
     public static readonly string ScheduleNotFound = "Schedule not found";
 
-    // Timestamps
+    // TIMESTAMPS
     public static readonly string TimestampNotAvailable = "Timestamp not available";
     public static readonly string TimestampNotFound = "Timestamp not found";
+    public static readonly string InvalidTimestamp = "Invalid timestamp";
 
     // RESERVATIONS
     public static readonly string YouHaveLessonReservedAtThisTime = "You have lesson reserved at this time";

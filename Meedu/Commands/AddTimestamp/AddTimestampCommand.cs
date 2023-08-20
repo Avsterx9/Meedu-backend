@@ -5,6 +5,6 @@ namespace Meedu.Commands.AddTimestamp;
 
 public record AddTimestampCommand(
     Guid ScheduleId,
-    DateTime AvailableFrom,
-    DateTime AvailableTo
+    string AvailableFrom,
+    string AvailableTo
     ) : IRequest<ScheduleDto>;

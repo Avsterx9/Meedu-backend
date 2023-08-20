@@ -11,6 +11,7 @@ using Meedu.Models.Reservations.UserReservations;
 using Meedu.Models.Response;
 using Meedu.Models.Schedule;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace Meedu.Services;
 
@@ -81,13 +82,13 @@ public class ScheduleService : IScheduleService
 
     public async Task<ScheduleDto> AddTimestampToScheduleAsync(AddTimestampCommand command)
     {
-        //var schedule = await _context.DaySchedules
-        //    .Include(d => d.ScheduleTimestamps)
-        //    .FirstOrDefaultAsync(d => d.Id == command.ScheduleId)
-        //    ?? throw new BadRequestException(ExceptionMessages.ScheduleNotFound);
+        var schedule = await _context.DaySchedules
+            .Include(d => d.ScheduleTimestamps)
+            .FirstOrDefaultAsync(d => d.Id == command.ScheduleId)
+            ?? throw new BadRequestException(ExceptionMessages.ScheduleNotFound);
 
-        //var availableFrom = dto.AvailableFrom;
-        //var availableTo = dto.AvailableTo;
+        if (!ValidateTimestampHour(command.AvailableFrom) && !ValidateTimestampHour(command.AvailableTo))
+            throw new BadRequestException(ExceptionMessages.InvalidTimestamp);
 
         //if (schedule.ScheduleTimestamps.Any(x => x.AvailableFrom.Hour == availableFrom.Hour))
         //    throw new BadRequestException(ExceptionMessages.TimestampNotAvailable);
@@ -101,6 +102,13 @@ public class ScheduleService : IScheduleService
         //schedule.ScheduleTimestamps.Add(timespan);
         //await _context.SaveChangesAsync();
         return new ScheduleDto();
+    }
+
+    private bool ValidateTimestampHour(string timestamp)
+    {
+        var regex = new Regex("^(0?[1-9]|1[0-2]):[0-5][0-9]$");
+
+        return regex.Match(timestamp).Success;
     }
 
     public async Task DeleteTimespanFromScheduleAsync(Guid timespanId)
