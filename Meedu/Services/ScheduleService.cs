@@ -11,6 +11,7 @@ using Meedu.Models.Reservations.UserReservations;
 using Meedu.Models.Response;
 using Meedu.Models.Schedule;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
 
 namespace Meedu.Services;
@@ -90,18 +91,37 @@ public class ScheduleService : IScheduleService
         if (!ValidateTimestampHour(command.AvailableFrom) && !ValidateTimestampHour(command.AvailableTo))
             throw new BadRequestException(ExceptionMessages.InvalidTimestamp);
 
-        //if (schedule.ScheduleTimestamps.Any(x => x.AvailableFrom.Hour == availableFrom.Hour))
-        //    throw new BadRequestException(ExceptionMessages.TimestampNotAvailable);
+        if(schedule.ScheduleTimestamps.Any(x => !AreHouresOverlapping(x.AvailableFrom, command.AvailableFrom)))
+            throw new BadRequestException(ExceptionMessages.TimestampNotAvailable);
 
-        //var timespan = new ScheduleTimespan()
-        //{
-        //    AvailableFrom = availableFrom,
-        //    AvailableTo = dto.AvailableTo,
-        //};
+        schedule.ScheduleTimestamps.Add(new ScheduleTimestamp()
+        {
+            AvailableFrom = command.AvailableFrom,
+            AvailableTo = command.AvailableTo,
+        });
 
-        //schedule.ScheduleTimestamps.Add(timespan);
-        //await _context.SaveChangesAsync();
-        return new ScheduleDto();
+        await _context.SaveChangesAsync();
+        return _mapper.Map<ScheduleDto>(schedule);
+    }
+
+    public bool AreHouresOverlapping(string first, string second)
+    {
+        var firstHours = first.Split(":");
+        var secondHours = second.Split(":");
+
+        var firstHour = Int32.Parse(firstHours[0]);
+        var secondHour = Int32.Parse(secondHours[0]);
+
+        var firstMinutes = Int32.Parse(firstHours[1]);
+        var secondMinutes = Int32.Parse(secondHours[1]);
+
+        if (secondHour > firstHour || secondHour < firstHour)
+            return true;
+
+        if(firstHour == secondHour)
+            return firstMinutes < secondMinutes ? true : false;
+
+        return false;
     }
 
     private bool ValidateTimestampHour(string timestamp)

@@ -59,11 +59,11 @@ public class AutoMapperProfile : Profile
 			.ForMember(x => x.ScheduleId, o => o.MapFrom(src => src.ScheduleTimespan.DaySchedule.Id.ToString()))
 			.ForMember(x => x.TimespanId, o => o.MapFrom(src => src.ScheduleTimespan.Id.ToString()));
 
-		CreateMap<ScheduleTimestamp, ScheduleTimespanDto>();
-
 		CreateMap<Subject, SubjectDto>();
 
 		CreateMap<DaySchedule, ScheduleDto>()
 			.ForMember(x => x.ScheduleTimestamps, o => o.MapFrom(src => src.ScheduleTimestamps));
-	}
+
+        CreateMap<ScheduleTimestamp, ScheduleTimespanDto>();
+    }
 }
