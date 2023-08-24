@@ -5,6 +5,7 @@ using Meedu.Commands.DeleteSchedule;
 using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Reservations.UserReservations;
 using Meedu.Models.Schedule;
+using Meedu.Queries.GetScheduleByUser;
 using Meedu.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -40,7 +41,7 @@ public class ScheduleController : ControllerBase
     }
 
     [HttpGet("getByUser")]
-    public async Task<ActionResult<List<ScheduleDto>>> GetScheduleAsync(GetScheduleByUserQuery query)
+    public async Task<ActionResult<List<ScheduleDto>>> GetScheduleAsync([FromQuery] GetScheduleByUserQuery query)
     {
         return Ok(await _sender.Send(query));
     }

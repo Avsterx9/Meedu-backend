@@ -10,6 +10,7 @@ using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Reservations.UserReservations;
 using Meedu.Models.Response;
 using Meedu.Models.Schedule;
+using Meedu.Queries.GetScheduleByUser;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
@@ -79,6 +80,16 @@ public class ScheduleService : IScheduleService
 
         await _context.SaveChangesAsync();
         return new DeleteScheduleResponse(true, "Schedule deleted successfully");
+    }
+
+    public async Task<IReadOnlyList<ScheduleDto>> GetScheduleByUserAsync(GetScheduleByUserQuery query)
+    {
+        return await _context.DaySchedules
+            .Include(x => x.ScheduleTimestamps)
+            .ThenInclude(x => x.LessonReservations)
+            .Where(x => x.UserId == query.userId)
+            .Select(x => _mapper.Map<ScheduleDto>(x))
+            .ToListAsync(); 
     }
 
     public async Task<ScheduleDto> AddTimestampToScheduleAsync(AddTimestampCommand command)
