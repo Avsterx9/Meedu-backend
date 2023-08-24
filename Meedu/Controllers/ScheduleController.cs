@@ -1,12 +1,14 @@
 ﻿using MediatR;
 using Meedu.Commands.AddSchedule;
 using Meedu.Commands.AddTimestamp;
+using Meedu.Commands.DeleteSchedule;
 using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Reservations.UserReservations;
 using Meedu.Models.Schedule;
 using Meedu.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Meedu.Controllers;
 
@@ -25,28 +27,27 @@ public class ScheduleController : ControllerBase
 
     [HttpPost("add")]
     [Authorize]
-    public async Task<ActionResult> AddSchedule([FromBody] AddScheduleCommand command)
+    public async Task<ActionResult> AddScheduleAsync([FromBody] AddScheduleCommand command)
     {
         return Ok(await _sender.Send(command));
     }
 
     [HttpDelete("delete")]
     [Authorize]
-    public async Task<ActionResult> DeleteSchedule(Guid scheduleId)
+    public async Task<ActionResult> DeleteScheduleAsync([FromQuery] DeleteScheduleCommand command)
     {
-        //await _scheduleService.DeleteScheduleAsync(scheduleId);
-        return Ok();
+        return Ok(await _sender.Send(command));
     }
 
-    [HttpGet("getByLessonOffer")]
-    public async Task<ActionResult<List<ScheduleDto>>> GetSchedule(Guid lessonOfferId)
+    [HttpGet("getByUser")]
+    public async Task<ActionResult<List<ScheduleDto>>> GetScheduleAsync(GetScheduleByUserQuery query)
     {
-        return Ok();
+        return Ok(await _sender.Send(query));
     }
 
     [HttpPost("timespans/add")]
     [Authorize]
-    public async Task<ActionResult> AddTimespanToSchedule(
+    public async Task<ActionResult> AddTimespanToScheduleAsync(
         [FromBody] AddTimestampCommand command)
     {
         return Ok(await _sender.Send(command));
