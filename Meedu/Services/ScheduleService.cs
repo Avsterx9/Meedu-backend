@@ -2,6 +2,7 @@
 using Meedu.Commands.AddSchedule;
 using Meedu.Commands.AddTimestamp;
 using Meedu.Commands.DeleteSchedule;
+using Meedu.Commands.DeleteTimestamp;
 using Meedu.Entities;
 using Meedu.Exceptions;
 using Meedu.Helpers;
@@ -75,7 +76,7 @@ public class ScheduleService : IScheduleService
                 _context.LessonReservations.RemoveRange(timestamp.LessonReservations);
         }
 
-        _context.ScheduleTimespans.RemoveRange(schedule.ScheduleTimestamps);
+        _context.ScheduleTimestamps.RemoveRange(schedule.ScheduleTimestamps);
         _context.DaySchedules.Remove(schedule);
 
         await _context.SaveChangesAsync();
@@ -142,16 +143,18 @@ public class ScheduleService : IScheduleService
         return regex.Match(timestamp).Success;
     }
 
-    public async Task DeleteTimespanFromScheduleAsync(Guid timespanId)
+    public async Task<DeleteTimestampResponse> DeleteTimespanFromScheduleAsync(DeleteTimestampCommand command)
     {
-        var timespan = await _context.ScheduleTimespans
+        var timespan = await _context.ScheduleTimestamps
             .Include(x => x.LessonReservations)
-            .FirstOrDefaultAsync(d => d.Id == timespanId)
-            ?? throw new BadRequestException(ExceptionMessages.TimestampNotFound);
+            .FirstOrDefaultAsync(d => d.Id == command.TimestampId)
+            ?? throw new NotFoundException(ExceptionMessages.TimestampNotFound);
 
         _context.LessonReservations.RemoveRange(timespan.LessonReservations);
-        _context.ScheduleTimespans.Remove(timespan);
+        _context.ScheduleTimestamps.Remove(timespan);
         await _context.SaveChangesAsync();
+
+        return new DeleteTimestampResponse(true, "Timestamps and reservations deleted successfully");
     }
 
     public async Task AddReservationAsync(LessonReservationDto dto, Guid timespanId)
@@ -211,7 +214,7 @@ public class ScheduleService : IScheduleService
             .FirstOrDefaultAsync(t => t.Id == scheduleId)
             ?? throw new BadRequestException("ScheduleNotFound");
 
-        var timespan = await _context.ScheduleTimespans
+        var timespan = await _context.ScheduleTimestamps
             .Include(x => x.LessonReservations)
             .ThenInclude(x => x.ReservedBy)
             .FirstOrDefaultAsync(t => t.Id == timespanId)
