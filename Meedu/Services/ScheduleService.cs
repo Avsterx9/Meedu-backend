@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Meedu.Commands.AddReservation;
 using Meedu.Commands.AddSchedule;
 using Meedu.Commands.AddTimestamp;
 using Meedu.Commands.DeleteSchedule;
@@ -157,44 +158,49 @@ public class ScheduleService : IScheduleService
         return new DeleteTimestampResponse(true, "Timestamps and reservations deleted successfully");
     }
 
-    public async Task AddReservationAsync(LessonReservationDto dto, Guid timespanId)
+    public async Task<LessonReservationDto> AddReservationAsync(AddReservationCommand command)
     {
-        //var userId = _userContextService.GetUserIdFromToken();
+        var userId = _userContextService.GetUserIdFromToken();
 
-        //var timestamp = await _context.ScheduleTimespans
-        //    .Include(x => x.LessonReservations)
-        //    .Include(x => x.DaySchedule)
-        //    .FirstOrDefaultAsync(t => t.Id == timespanId)
-        //    ?? throw new BadRequestException(ExceptionMessages.TimestampNotFound);
+        var timestamp = await _context.ScheduleTimestamps
+            .Include(x => x.LessonReservations)
+            .Include(x => x.DaySchedule)
+            .FirstOrDefaultAsync(t => t.Id == command.TimestampId)
+            ?? throw new NotFoundException(ExceptionMessages.TimestampNotFound);
 
-        //if (timestamp.LessonReservations == null)
-        //    timestamp.LessonReservations = new List<LessonReservation>();
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == userId)
+            ?? throw new BadRequestException(ExceptionMessages.UserNotFound);
 
-        //var existingReservations = timestamp.LessonReservations
-        //    .Where(x => x.ReservedById == userId && x.ReservationDate == dto.ReservationDate)
-        //    .ToList();
+        var existingReservation = timestamp.LessonReservations
+            .FirstOrDefault(x => x.ReservationDate == command.ReservationDate);
 
-        //if(existingReservations.Any(x => 
-        //    TimeOnly.FromDateTime(x.ScheduleTimespan.AvailableFrom) == TimeOnly.FromDateTime(timestamp.AvailableFrom)))
-        //    throw new BadRequestException(ExceptionMessages.YouHaveLessonReservedAtThisTime);
+        if (existingReservation is not null)
+            throw new BadRequestException(ExceptionMessages.DateIsAlreadyReserved);
 
-        //if(timestamp.LessonReservations.Any(r => r.ReservationDate == dto.ReservationDate))
-        //    throw new BadRequestException(ExceptionMessages.DateIsAlreadyReserved);
+        var userReservations = await _context.LessonReservations
+            .Where(x => x.ReservedById == userId && x.ReservationDate == command.ReservationDate)
+            .ToListAsync();
 
-        //var user = await _context.Users
-        //    .FirstOrDefaultAsync(u => u.Id == dto.ReservedBy.Id)
-        //    ?? throw new BadRequestException(ExceptionMessages.UserNotFound);
+        if (userReservations.Any())
+            throw new BadRequestException(ExceptionMessages.YouHaveLessonReservedAtThisTime);
 
-        //if (dto.ReservationDate.DayOfWeek.ToString() != timestamp.DaySchedule.DayOfWeek.ToString())
-        //    throw new BadRequestException(ExceptionMessages.ReservationDayIsIncorrect);
+        var newReservation = new LessonReservation
+        {
+            PrivateLessonOfferId = command.LessonOfferId,
+            ReservedById = userId,
+            ScheduleTimespanId = timestamp.Id,
+            ReservationDate = command.ReservationDate,
+        };
 
-        //timestamp.LessonReservations.Add(new LessonReservation()
-        //{
-        //    ReservedBy = user,
-        //    ReservationDate = dto.ReservationDate
-        //});
+        await _context.LessonReservations.AddAsync(newReservation);
+        await _context.SaveChangesAsync();
 
-        //await _context.SaveChangesAsync();
+        return new LessonReservationDto
+        {
+            ReservationDate = command.ReservationDate,
+            ReservedBy = new DtoNameId { Id = userId, Name = $"{user.FirstName} {user.LastName}" }
+        };
     }
 
     public async Task DeleteReservationAsync(Guid reservationId)

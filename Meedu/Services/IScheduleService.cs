@@ -1,4 +1,5 @@
-﻿using Meedu.Commands.AddSchedule;
+﻿using Meedu.Commands.AddReservation;
+using Meedu.Commands.AddSchedule;
 using Meedu.Commands.AddTimestamp;
 using Meedu.Commands.DeleteSchedule;
 using Meedu.Commands.DeleteTimestamp;
@@ -17,7 +18,7 @@ public interface IScheduleService
     Task<IReadOnlyList<ScheduleDto>> GetScheduleByUserAsync(GetScheduleByUserQuery query);
     Task<ScheduleDto> AddTimestampToScheduleAsync(AddTimestampCommand command);
     Task<DeleteTimestampResponse> DeleteTimespanFromScheduleAsync(DeleteTimestampCommand command);
-    Task AddReservationAsync(LessonReservationDto dto, Guid timespanId);
+    Task<LessonReservationDto> AddReservationAsync(AddReservationCommand command);
     Task DeleteReservationAsync(Guid reservationId);
     Task<List<LessonReservationDto>> GetReservationsByTimespanIdAsync(Guid scheduleId, Guid timespanId);
     Task<List<UserPrivateLessonReservationsDto>> GetReservationsByUserAsync(int days);

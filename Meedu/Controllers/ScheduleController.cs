@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Meedu.Commands.AddReservation;
 using Meedu.Commands.AddSchedule;
 using Meedu.Commands.AddTimestamp;
 using Meedu.Commands.DeleteSchedule;
@@ -64,10 +65,9 @@ public class ScheduleController : ControllerBase
 
     [HttpPost("reservations/add")]
     [Authorize]
-    public async Task<ActionResult> AddReservation([FromBody] LessonReservationDto reservation, Guid scheduleId, Guid timespanId)
+    public async Task<ActionResult> AddReservation([FromBody] AddReservationCommand command)
     {
-        await _scheduleService.AddReservationAsync(reservation, timespanId);
-        return Ok();
+        return Ok(await _sender.Send(command));
     }
 
     [HttpDelete("reservations/delete")]
