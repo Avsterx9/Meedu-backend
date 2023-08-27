@@ -4,12 +4,12 @@ using Meedu.Services;
 
 namespace Meedu.Queries.GetReservationsByTimestamp;
 
-public sealed class GetReservationsByTimespanQueryHandler 
+public sealed class GetReservationsByTimestampQueryHandler 
     : IRequestHandler<GetReservationsByTimestampQuery, IReadOnlyList<LessonReservationDto>>
 {
     private readonly IScheduleService _scheduleService;
 
-    public GetReservationsByTimespanQueryHandler(IScheduleService scheduleService)
+    public GetReservationsByTimestampQueryHandler(IScheduleService scheduleService)
     {
         _scheduleService = scheduleService;
     }
