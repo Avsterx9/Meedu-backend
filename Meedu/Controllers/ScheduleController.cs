@@ -8,6 +8,7 @@ using Meedu.Commands.DeleteTimestamp;
 using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Reservations.UserReservations;
 using Meedu.Models.Schedule;
+using Meedu.Queries.GetReservationsByTimestamp;
 using Meedu.Queries.GetScheduleByUser;
 using Meedu.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -80,9 +81,10 @@ public class ScheduleController : ControllerBase
 
     [HttpGet("reservations/getReservations")]
     [Authorize]
-    public async Task<ActionResult<LessonReservationDto>> GetReservationsByTimespanId(Guid scheduleId, Guid timespanId)
+    public async Task<ActionResult<LessonReservationDto>> GetReservationsByTimespanId(
+        [FromQuery] GetReservationsByTimestampQuery query)
     {
-        return Ok(await _scheduleService.GetReservationsByTimespanIdAsync(scheduleId, timespanId));
+        return Ok(await _sender.Send(query));
     }
 
     [HttpGet("reservations/getReservationsByUser")]

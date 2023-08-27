@@ -65,5 +65,13 @@ public class AutoMapperProfile : Profile
 			.ForMember(x => x.ScheduleTimestamps, o => o.MapFrom(src => src.ScheduleTimestamps));
 
         CreateMap<ScheduleTimestamp, ScheduleTimespanDto>();
+
+		CreateMap<LessonReservation, LessonReservationDto>()
+			.ForMember(x => x.ReservedBy,
+				o => o.MapFrom(src => new DtoNameId
+				{
+					Id = src.ReservedById,
+					Name = $"{src.ReservedBy.FirstName} {src.ReservedBy.LastName}"
+				}));
     }
 }

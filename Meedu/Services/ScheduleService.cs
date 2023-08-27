@@ -13,6 +13,7 @@ using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Reservations.UserReservations;
 using Meedu.Models.Response;
 using Meedu.Models.Schedule;
+using Meedu.Queries.GetReservationsByTimestamp;
 using Meedu.Queries.GetScheduleByUser;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Metadata.Ecma335;
@@ -216,33 +217,16 @@ public class ScheduleService : IScheduleService
         return new DeleteReservationResponse(true, "Reservation deleted successfully");
     }
 
-    public async Task<List<LessonReservationDto>> GetReservationsByTimespanIdAsync(Guid scheduleId, Guid timespanId)
+    public async Task<IReadOnlyList<LessonReservationDto>> GetReservationsByTimestampIdAsync(
+        GetReservationsByTimestampQuery query)
     {
-        var schedule = await _context.DaySchedules
-            .Include(x => x.ScheduleTimestamps)
-            .FirstOrDefaultAsync(t => t.Id == scheduleId)
-            ?? throw new BadRequestException("ScheduleNotFound");
-
-        var timespan = await _context.ScheduleTimestamps
-            .Include(x => x.LessonReservations)
-            .ThenInclude(x => x.ReservedBy)
-            .FirstOrDefaultAsync(t => t.Id == timespanId)
-            ?? throw new BadRequestException("TimespanNotFound");
-
-        var reservations = timespan.LessonReservations
-            .Where(x => x.ReservationDate > DateTime.Now)
-            .ToList();
-
-        return reservations.Select(x => new LessonReservationDto
-        {
-            Id = x.Id.ToString(),
-            ReservationDate = x.ReservationDate,
-            ReservedBy = new DtoNameId
-            {
-                Id = x.ReservedBy.Id,
-                Name = $"{x.ReservedBy.FirstName} {x.ReservedBy.LastName}"
-            }
-        }).ToList();
+        return await _context.LessonReservations
+            .Include(x => x.ReservedBy)
+            .Where(x => x.ScheduleTimespanId == query.TimestampId
+                && x.ReservationDate > DateTime.Now)
+            .AsNoTracking()
+            .Select(x => _mapper.Map<LessonReservationDto>(x))
+            .ToListAsync();
     }
 
     public async Task<List<UserPrivateLessonReservationsDto>> GetReservationsByUserAsync(int days)
