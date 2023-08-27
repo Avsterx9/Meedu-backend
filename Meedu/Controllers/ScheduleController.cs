@@ -2,6 +2,7 @@
 using Meedu.Commands.AddReservation;
 using Meedu.Commands.AddSchedule;
 using Meedu.Commands.AddTimestamp;
+using Meedu.Commands.DeleteReservation;
 using Meedu.Commands.DeleteSchedule;
 using Meedu.Commands.DeleteTimestamp;
 using Meedu.Models.PrivateLessonOffer;
@@ -72,10 +73,9 @@ public class ScheduleController : ControllerBase
 
     [HttpDelete("reservations/delete")]
     [Authorize]
-    public async Task<ActionResult> RemoveReservation(Guid reservationId)
+    public async Task<ActionResult> RemoveReservation([FromQuery] DeleteReservationCommand command)
     {
-        await _scheduleService.DeleteReservationAsync(reservationId);
-        return Ok();
+        return Ok(await _sender.Send(command));
     }
 
     [HttpGet("reservations/getReservations")]

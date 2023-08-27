@@ -2,6 +2,7 @@
 using Meedu.Commands.AddReservation;
 using Meedu.Commands.AddSchedule;
 using Meedu.Commands.AddTimestamp;
+using Meedu.Commands.DeleteReservation;
 using Meedu.Commands.DeleteSchedule;
 using Meedu.Commands.DeleteTimestamp;
 using Meedu.Entities;
@@ -203,14 +204,16 @@ public class ScheduleService : IScheduleService
         };
     }
 
-    public async Task DeleteReservationAsync(Guid reservationId)
+    public async Task<DeleteReservationResponse> DeleteReservationAsync(DeleteReservationCommand command)
     {
         var reservation = await _context.LessonReservations
-            .FirstOrDefaultAsync(r => r.Id == reservationId)
-            ?? throw new BadRequestException("ReservationNotFound");
+            .FirstOrDefaultAsync(r => r.Id == command.ReservationId)
+            ?? throw new BadRequestException(ExceptionMessages.ReservationNotFound);
 
         _context.LessonReservations.Remove(reservation);
         await _context.SaveChangesAsync();
+
+        return new DeleteReservationResponse(true, "Reservation deleted successfully");
     }
 
     public async Task<List<LessonReservationDto>> GetReservationsByTimespanIdAsync(Guid scheduleId, Guid timespanId)

@@ -25,6 +25,7 @@ public static class ExceptionMessages
     public static readonly string YouHaveLessonReservedAtThisTime = "You have lesson reserved at this time";
     public static readonly string DateIsAlreadyReserved = "Date is already reserved";
     public static readonly string ReservationDayIsIncorrect = "Reservation day is incorrect";
+    public static readonly string ReservationNotFound = "Reservation npt found";
 
     // SUBJECTS
     public static readonly string SubjectNotFound = "Subject offer not found";
