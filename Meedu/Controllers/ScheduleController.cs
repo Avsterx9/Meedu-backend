@@ -11,10 +11,12 @@ using Meedu.Models.Response;
 using Meedu.Models.Schedule;
 using Meedu.Queries.GetReservationsByTimestamp;
 using Meedu.Queries.GetReservationsByUser;
+using Meedu.Queries.GetReservationsForUsersLessons;
 using Meedu.Queries.GetScheduleByUser;
 using Meedu.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Meedu.Controllers;
@@ -99,8 +101,9 @@ public class ScheduleController : ControllerBase
 
     [HttpGet("reservations/getUserLessonReservations")]
     [Authorize]
-    public async Task<ActionResult<List<UserPrivateLessonReservationsDto>>> GetUserLessonReservations(int days)
+    public async Task<ActionResult<List<UserPrivateLessonReservationsDto>>> GetUserLessonReservations(
+        [FromQuery] GetReservationsForUsersLessonsQuery query)
     {
-        return Ok(await _scheduleService.GetUserLessonReservationsAsync(days));
+        return Ok(await _sender.Send(query));
     }
 }

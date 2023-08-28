@@ -10,6 +10,7 @@ using Meedu.Models.Response;
 using Meedu.Models.Schedule;
 using Meedu.Queries.GetReservationsByTimestamp;
 using Meedu.Queries.GetReservationsByUser;
+using Meedu.Queries.GetReservationsForUsersLessons;
 using Meedu.Queries.GetScheduleByUser;
 
 namespace Meedu.Services;
@@ -25,5 +26,5 @@ public interface IScheduleService
     Task<DeleteReservationResponse> DeleteReservationAsync(DeleteReservationCommand command);
     Task<IReadOnlyList<LessonReservationDto>> GetReservationsByTimestampIdAsync(GetReservationsByTimestampQuery query);
     Task<IReadOnlyList<UserPrivateLessonReservationsDto>> GetReservationsByUserAsync(GetReservationsByUserQuery query);
-    Task<List<UserPrivateLessonReservationsDto>> GetUserLessonReservationsAsync(int days);
+    Task<IReadOnlyList<UserPrivateLessonReservationsDto>> GetReservationsForUsersLessonsAsync(GetReservationsForUsersLessonsQuery query);
 }

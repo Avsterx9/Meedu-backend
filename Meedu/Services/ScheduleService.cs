@@ -15,6 +15,7 @@ using Meedu.Models.Response;
 using Meedu.Models.Schedule;
 using Meedu.Queries.GetReservationsByTimestamp;
 using Meedu.Queries.GetReservationsByUser;
+using Meedu.Queries.GetReservationsForUsersLessons;
 using Meedu.Queries.GetScheduleByUser;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -231,7 +232,8 @@ public class ScheduleService : IScheduleService
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<UserPrivateLessonReservationsDto>> GetReservationsByUserAsync(GetReservationsByUserQuery query)
+    public async Task<IReadOnlyList<UserPrivateLessonReservationsDto>> GetReservationsByUserAsync(
+        GetReservationsByUserQuery query)
     {
         var userId = _userContextService.GetUserId;
 
@@ -242,6 +244,25 @@ public class ScheduleService : IScheduleService
             .Include(x => x.PrivateLessonOffer)
             .Where(x => x.ReservedById == userId
                 && x.ReservationDate >= DateTime.Today && x.ReservationDate <= DateTime.Now.AddDays(query.Days))
+            .AsNoTracking()
+            .ToListAsync();
+
+        return CreateDto(reservations);
+    }
+
+    public async Task<IReadOnlyList<UserPrivateLessonReservationsDto>> GetReservationsForUsersLessonsAsync(
+        GetReservationsForUsersLessonsQuery query)
+    {
+        var userId = _userContextService.GetUserId;
+
+        var reservations = await _context.LessonReservations
+            .Include(x => x.ReservedBy)
+            .Include(x => x.ScheduleTimespan)
+            .ThenInclude(x => x.DaySchedule)
+            .Include(x => x.PrivateLessonOffer)
+            .ThenInclude(x => x.CreatedBy)
+            .Where(x => x.PrivateLessonOffer.CreatedById == userId
+                && x.ReservationDate >= DateTime.Today)
             .AsNoTracking()
             .ToListAsync();
 
@@ -270,74 +291,10 @@ public class ScheduleService : IScheduleService
                         TimespanId = r.ScheduleTimespanId,
                         User = _mapper.Map<DtoNameLastnameId>(r.ReservedBy)
                     })
+                    .OrderBy(x => Int32.Parse(x.AvailableFrom.Split(":")[0]))
                     .ToList()
             })
             .OrderBy(x => x.ReservationDate)
             .ToList();
-    }
-
-    public async Task<List<UserPrivateLessonReservationsDto>> GetUserLessonReservationsAsync(int days)
-    {
-        // ten kto stworzył to zalogowany
-
-        var userId = _userContextService.GetUserId;
-
-        var reservations = await _context.LessonReservations
-            .Include(x => x.ReservedBy)
-            .Include(x => x.ScheduleTimespan)
-            .ThenInclude(x => x.DaySchedule)
-            //.ThenInclude(x => x.PrivateLessonOffer)
-            //.ThenInclude(x => x.CreatedBy)
-            //.Where(x => x.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy.Id == userId && x.ReservationDate >= DateTime.Today)
-            .ToListAsync();
-
-        var dates = reservations
-            .Select(x => x.ReservationDate)
-            .Distinct()
-            .ToList();
-
-        var userLessonReservationsList = new List<UserPrivateLessonReservationsDto>();
-
-        foreach (var date in dates)
-        {
-            var reservation = new UserPrivateLessonReservationsDto
-            {
-                ReservationDate = date,
-                DayReservations = new List<UserReservationDataDto>(),
-                Day = date.DayOfWeek
-            };
-            reservation.DayReservations = reservations
-                .Where(x => x.ReservationDate == date)
-                .Select(x => CreateUserReservationDto(x, x.ReservedBy))
-                .ToList();
-
-            userLessonReservationsList.Add(reservation);
-        }
-
-        foreach (var x in userLessonReservationsList)
-        {
-            x.DayReservations = x.DayReservations
-                .OrderBy(y => Int32.Parse(y.AvailableFrom.Split(":")[0]))
-                .ToList();
-        }
-        return userLessonReservationsList.OrderBy(x => x.ReservationDate).ToList();
-    }
-
-    private UserReservationDataDto CreateUserReservationDto(LessonReservation r, User userInfo)
-    {
-        return new UserReservationDataDto();
-        //return new UserReservationDataDto
-        //{
-        //    AvailableFrom = r.ScheduleTimespan.AvailableFrom.ToString("HH:mm"),
-        //    AvailableTo = r.ScheduleTimespan.AvailableTo.ToString("HH:mm"),
-        //    isOnline = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.OnlineLessonsPossible,
-        //    LessonTitle = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.LessonTitle,
-        //    Place = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Place,
-        //    ReservationId = r.Id.ToString(),
-        //    ScheduleId = r.ScheduleTimespan.DaySchedule.Id.ToString(),
-        //    TimespanId = r.ScheduleTimespan.Id.ToString(),
-        //    lessonId = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Id.ToString(),
-        //    User = SetUserInfo(userInfo)
-        //};
     }
 }
