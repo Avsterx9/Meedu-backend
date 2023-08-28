@@ -14,8 +14,10 @@ using Meedu.Models.Reservations.UserReservations;
 using Meedu.Models.Response;
 using Meedu.Models.Schedule;
 using Meedu.Queries.GetReservationsByTimestamp;
+using Meedu.Queries.GetReservationsByUser;
 using Meedu.Queries.GetScheduleByUser;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
 
@@ -229,7 +231,7 @@ public class ScheduleService : IScheduleService
             .ToListAsync();
     }
 
-    public async Task<List<UserPrivateLessonReservationsDto>> GetReservationsByUserAsync(int days)
+    public async Task<IReadOnlyList<UserPrivateLessonReservationsDto>> GetReservationsByUserAsync(GetReservationsByUserQuery query)
     {
         var userId = _userContextService.GetUserId;
 
@@ -237,47 +239,49 @@ public class ScheduleService : IScheduleService
             .Include(x => x.ReservedBy)
             .Include(x => x.ScheduleTimespan)
             .ThenInclude(x => x.DaySchedule)
-            //.ThenInclude(x => x.PrivateLessonOffer)
-            //.ThenInclude(x => x.CreatedBy)
-            //.Where(x => x.ReservedBy.Id == userId && x.ReservationDate >= DateTime.Today && x.ReservationDate <= DateTime.Now.AddDays(days))
+            .Include(x => x.PrivateLessonOffer)
+            .Where(x => x.ReservedById == userId
+                && x.ReservationDate >= DateTime.Today && x.ReservationDate <= DateTime.Now.AddDays(query.Days))
+            .AsNoTracking()
             .ToListAsync();
 
-        var dates = reservations
-            .Select(x => x.ReservationDate)
-            .Distinct()
-            .ToList();
-
-        var userLessonReservationsList = new List<UserPrivateLessonReservationsDto>();
-
-        foreach (var date in dates)
-        {
-            var reservation = new UserPrivateLessonReservationsDto
+        return reservations
+            .GroupBy(g => g.ReservationDate)
+            .Select(x => new UserPrivateLessonReservationsDto
             {
-                ReservationDate = date,
-                DayReservations = new List<UserReservationDataDto>(),
-                Day = (int)date.DayOfWeek == 0 ? 6 : (int)date.DayOfWeek - 1
-            };
-
-            //reservation.DayReservations = reservations
-            //    .Where(x => x.ReservationDate == date)
-            //    .Select(x => CreateUserReservationDto(x, x.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy))
-            //    .ToList();
-
-            userLessonReservationsList.Add(reservation);
-        }
-
-        foreach (var x in userLessonReservationsList)
-        {
-            x.DayReservations = x.DayReservations
-                .OrderBy(y => Int32.Parse(y.AvailableFrom.Split(":")[0]))
-                .ToList();
-        }
-
-        return userLessonReservationsList.OrderBy(x => x.ReservationDate).ToList();
+                ReservationDate = x.Key,
+                Day = x.First().ScheduleTimespan.DaySchedule.DayOfWeek,
+                DayReservations = x.Where(d => d.ReservationDate == x.Key)
+                    .Select(r => new UserReservationDataDto
+                    {
+                        AvailableFrom = r.ScheduleTimespan.AvailableFrom,
+                        AvailableTo = r.ScheduleTimespan.AvailableTo,
+                        isOnline = r.PrivateLessonOffer.IsRemote,
+                        LessonId = r.PrivateLessonOfferId,
+                        LessonTitle = r.PrivateLessonOffer.LessonTitle,
+                        Place = r.PrivateLessonOffer.Place,
+                        ReservationId = r.Id,
+                        ScheduleId = r.ScheduleTimespan.DayScheduleId,
+                        TimespanId = r.ScheduleTimespanId,
+                        User = new DtoNameLastnameId
+                        {
+                            FirstName = r.ReservedBy.FirstName,
+                            Id = r.ReservedById,
+                            ImageDto = null,
+                            LastName = r.ReservedBy.LastName,
+                            PhoneNumber = r.ReservedBy.PhoneNumber,
+                        }
+                    })
+                    .ToList()
+            })
+            .OrderBy(x => x.ReservationDate)
+            .ToList();
     }
 
     public async Task<List<UserPrivateLessonReservationsDto>> GetUserLessonReservationsAsync(int days)
     {
+        // ten kto stworzył to zalogowany
+
         var userId = _userContextService.GetUserId;
 
         var reservations = await _context.LessonReservations
@@ -302,7 +306,7 @@ public class ScheduleService : IScheduleService
             {
                 ReservationDate = date,
                 DayReservations = new List<UserReservationDataDto>(),
-                Day = (int)date.DayOfWeek == 0 ? 6 : (int)date.DayOfWeek - 1
+                Day = date.DayOfWeek
             };
             reservation.DayReservations = reservations
                 .Where(x => x.ReservationDate == date)
@@ -337,84 +341,5 @@ public class ScheduleService : IScheduleService
         //    lessonId = r.ScheduleTimespan.DaySchedule.PrivateLessonOffer.Id.ToString(),
         //    User = SetUserInfo(userInfo)
         //};
-    }
-
-    private DtoNameLastnameId SetUserInfo(User userInfo)
-    {
-        return new DtoNameLastnameId
-        {
-            Id = userInfo.Id.ToString(),
-            FirstName = userInfo.FirstName,
-            LastName = userInfo.LastName,
-            PhoneNumber = userInfo.PhoneNumber
-        };
-    }
-
-    private async Task<Subject> CreateNewSubjectIfNotExists(String SubjectName)
-    {
-        var subject = await _context.Subjects
-            .FirstOrDefaultAsync(s => s.Name.Contains(SubjectName));
-
-        if (subject == null)
-        {
-            subject = new Subject() { Name = SubjectName };
-            _context.Subjects.Add(subject);
-        }
-
-        return subject;
-    }
-
-    private ScheduleDto CreateDtoFromEntity(DaySchedule entity)
-    {
-        //var scheduleDto = new ScheduleDto()
-        //{
-        //    Id = entity.Id,
-        //    DayOfWeek = entity.DayOfWeek,
-        //    //Subject = new SubjectDto(),
-        //    ScheduleTimestamps = new List<ScheduleTimespanDto>()
-        //};
-
-        //if(entity.ScheduleTimestamps != null && entity.ScheduleTimestamps.Count != 0)
-        //{
-        //    foreach(var entityTimestamp in entity.ScheduleTimestamps)
-        //    {
-        //        var timespanDto = new ScheduleTimespanDto()
-        //        {
-        //            Id = entityTimestamp.Id,
-        //            AvailableFrom = entityTimestamp.AvailableFrom.ToString("HH:mm"),
-        //            AvailableTo = entityTimestamp.AvailableTo,
-        //            LessonReservations = new List<LessonReservationDto>()
-        //        };
-
-        //        if(entityTimestamp.LessonReservations != null && entityTimestamp.LessonReservations.Count != 0)
-        //        {
-        //            foreach(var entityReservation in entityTimestamp.LessonReservations)
-        //            {
-        //                var reservationDto = new LessonReservationDto()
-        //                {
-        //                    Id = entityReservation.Id.ToString(),
-        //                    ReservationDate = entityReservation.ReservationDate,
-        //                    ReservedBy = new DtoNameId()
-        //                    {
-        //                        Id = entityReservation.ReservedBy.Id,
-        //                        Name = entityReservation.ReservedBy.LastName
-        //                    }
-        //                };
-        //                timespanDto.LessonReservations.Add(reservationDto);
-        //            }
-        //        }
-        //        scheduleDto.ScheduleTimestamps.Add(timespanDto);
-        //    }
-        //}
-        //return scheduleDto;
-        return new ScheduleDto();
-    }
-
-    private Guid ValidateGuid(string guidToValidate)
-    {
-        if (!Guid.TryParse(guidToValidate, out var guid))
-            throw new BadRequestException("InvalidGuid");
-
-        return guid;
     }
 }

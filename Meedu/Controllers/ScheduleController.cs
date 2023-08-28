@@ -7,6 +7,7 @@ using Meedu.Commands.DeleteSchedule;
 using Meedu.Commands.DeleteTimestamp;
 using Meedu.Models.PrivateLessonOffer;
 using Meedu.Models.Reservations.UserReservations;
+using Meedu.Models.Response;
 using Meedu.Models.Schedule;
 using Meedu.Queries.GetReservationsByTimestamp;
 using Meedu.Queries.GetScheduleByUser;
@@ -67,21 +68,21 @@ public class ScheduleController : ControllerBase
 
     [HttpPost("reservations/add")]
     [Authorize]
-    public async Task<ActionResult> AddReservation([FromBody] AddReservationCommand command)
+    public async Task<ActionResult<LessonReservationDto>> AddReservation([FromBody] AddReservationCommand command)
     {
         return Ok(await _sender.Send(command));
     }
 
     [HttpDelete("reservations/delete")]
     [Authorize]
-    public async Task<ActionResult> RemoveReservation([FromQuery] DeleteReservationCommand command)
+    public async Task<ActionResult<DeleteReservationResponse>> RemoveReservation([FromQuery] DeleteReservationCommand command)
     {
         return Ok(await _sender.Send(command));
     }
 
     [HttpGet("reservations/getReservations")]
     [Authorize]
-    public async Task<ActionResult<LessonReservationDto>> GetReservationsByTimespanId(
+    public async Task<ActionResult<IReadOnlyList<LessonReservationDto>>> GetReservationsByTimespanId(
         [FromQuery] GetReservationsByTimestampQuery query)
     {
         return Ok(await _sender.Send(query));
@@ -89,9 +90,10 @@ public class ScheduleController : ControllerBase
 
     [HttpGet("reservations/getReservationsByUser")]
     [Authorize]
-    public async Task<ActionResult<List<UserPrivateLessonReservationsDto>>> GetReservationsByUser(int days)
+    public async Task<ActionResult<IReadOnlyList<UserPrivateLessonReservationsDto>>> GetReservationsByUser(
+        [FromQuery] GetReservationsByUserQuery query)
     {
-        return Ok(await _scheduleService.GetReservationsByUserAsync(days));
+        return Ok(await _sender.Send(query));
     }
 
     [HttpGet("reservations/getUserLessonReservations")]

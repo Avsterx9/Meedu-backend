@@ -40,7 +40,7 @@ public class AutoMapperProfile : Profile
 			.ForMember(x => x.User,
 				o => o.MapFrom(src => src.CreatedBy == null ? null : new DtoNameLastnameId
 				{
-					Id = src.CreatedBy.Id.ToString(),
+					Id = src.CreatedBy.Id,
 					FirstName = src.CreatedBy.FirstName,
 					LastName = src.CreatedBy.LastName,
 					PhoneNumber = src.CreatedBy.PhoneNumber,

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Meedu.Commands.AddSubject;
 using Meedu.Entities;
+using Meedu.Exceptions;
 using Meedu.Helpers;
 using Meedu.Models;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +32,7 @@ public class SubjectService : ISubjectService
             .FirstOrDefaultAsync(s => s.Name == command.name || s.Name == command.name.ToLower());  
 
         if(existingSubject != null)
-            throw new BadHttpRequestException(ExceptionMessages.SubjectAlreadyExists);
+            throw new BadRequestException(ExceptionMessages.SubjectAlreadyExists);
 
         var newSubject = new Subject
         {
