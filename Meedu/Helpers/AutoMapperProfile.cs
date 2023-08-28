@@ -51,6 +51,14 @@ public class AutoMapperProfile : Profile
 					}
 				}));
 
+		CreateMap<User, DtoNameLastnameId>()
+			.ForMember(x => x.ImageDto,
+				o => o.MapFrom(src => new ImageDto
+				{
+					ContentType = src.Image == null ? string.Empty : src.Image.ContentType,
+					Data = src.Image == null ? string.Empty : Convert.ToBase64String(src.Image.Data)
+				}));
+
 
         CreateMap<LessonReservation, UserReservationDataDto>()
 			.ForMember(x => x.AvailableFrom, o => o.MapFrom(src => src.ScheduleTimespan.AvailableFrom))

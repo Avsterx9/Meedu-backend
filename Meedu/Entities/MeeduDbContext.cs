@@ -9,7 +9,7 @@ public class MeeduDbContext : DbContext
     public DbSet<PrivateLessonOffer> PrivateLessonOffers { get; set; }
     public DbSet<Subject> Subjects { get; set; }
     public DbSet<DaySchedule> DaySchedules { get; set; }
-    public DbSet<ScheduleTimestamp> ScheduleTimestamps { get; set; }
+    public DbSet<ScheduleTimestamp> ScheduleTimespans { get; set; }
     public DbSet<LessonReservation> LessonReservations { get; set; }
     public DbSet<Image> Images { get; set; }
 

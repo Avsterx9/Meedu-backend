@@ -95,7 +95,7 @@ namespace Meedu.Services
             return userList.Select(x => new DtoNameLastnameId
             {
                 FirstName = x.FirstName,
-                Id = x.Id.ToString(),
+                Id = x.Id,
                 LastName = x.LastName,
                 PhoneNumber = x.PhoneNumber
             }).ToList();
@@ -123,7 +123,7 @@ namespace Meedu.Services
         {
             return new DtoNameLastnameId
             {
-                Id = userInfo.Id.ToString(),
+                Id = userInfo.Id,
                 FirstName = userInfo.FirstName,
                 LastName = userInfo.LastName,
                 PhoneNumber = userInfo.PhoneNumber

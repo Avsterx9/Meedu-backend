@@ -10,6 +10,7 @@ using Meedu.Models.Reservations.UserReservations;
 using Meedu.Models.Response;
 using Meedu.Models.Schedule;
 using Meedu.Queries.GetReservationsByTimestamp;
+using Meedu.Queries.GetReservationsByUser;
 using Meedu.Queries.GetScheduleByUser;
 using Meedu.Services;
 using Microsoft.AspNetCore.Authorization;

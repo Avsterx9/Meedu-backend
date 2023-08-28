@@ -17,6 +17,6 @@ public sealed class GetReservationsByTimestampQueryHandler
     public async Task<IReadOnlyList<LessonReservationDto>> Handle(GetReservationsByTimestampQuery request,
         CancellationToken cancellationToken)
     {
-        return await _scheduleService.GetReservationsByTimespanIdAsync(request);
+        return await _scheduleService.GetReservationsByTimestampIdAsync(request);
     }
 }

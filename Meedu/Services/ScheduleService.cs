@@ -81,7 +81,7 @@ public class ScheduleService : IScheduleService
                 _context.LessonReservations.RemoveRange(timestamp.LessonReservations);
         }
 
-        _context.ScheduleTimestamps.RemoveRange(schedule.ScheduleTimestamps);
+        _context.ScheduleTimespans.RemoveRange(schedule.ScheduleTimestamps);
         _context.DaySchedules.Remove(schedule);
 
         await _context.SaveChangesAsync();
@@ -150,13 +150,13 @@ public class ScheduleService : IScheduleService
 
     public async Task<DeleteTimestampResponse> DeleteTimespanFromScheduleAsync(DeleteTimestampCommand command)
     {
-        var timespan = await _context.ScheduleTimestamps
+        var timespan = await _context.ScheduleTimespans
             .Include(x => x.LessonReservations)
             .FirstOrDefaultAsync(d => d.Id == command.TimestampId)
             ?? throw new NotFoundException(ExceptionMessages.TimestampNotFound);
 
         _context.LessonReservations.RemoveRange(timespan.LessonReservations);
-        _context.ScheduleTimestamps.Remove(timespan);
+        _context.ScheduleTimespans.Remove(timespan);
         await _context.SaveChangesAsync();
 
         return new DeleteTimestampResponse(true, "Timestamps and reservations deleted successfully");
@@ -166,7 +166,7 @@ public class ScheduleService : IScheduleService
     {
         var userId = _userContextService.GetUserIdFromToken();
 
-        var timestamp = await _context.ScheduleTimestamps
+        var timestamp = await _context.ScheduleTimespans
             .Include(x => x.LessonReservations)
             .Include(x => x.DaySchedule)
             .FirstOrDefaultAsync(t => t.Id == command.TimestampId)
@@ -245,6 +245,11 @@ public class ScheduleService : IScheduleService
             .AsNoTracking()
             .ToListAsync();
 
+        return CreateDto(reservations);
+    }
+
+    private IReadOnlyList<UserPrivateLessonReservationsDto> CreateDto(List<LessonReservation> reservations)
+    {
         return reservations
             .GroupBy(g => g.ReservationDate)
             .Select(x => new UserPrivateLessonReservationsDto
@@ -263,14 +268,7 @@ public class ScheduleService : IScheduleService
                         ReservationId = r.Id,
                         ScheduleId = r.ScheduleTimespan.DayScheduleId,
                         TimespanId = r.ScheduleTimespanId,
-                        User = new DtoNameLastnameId
-                        {
-                            FirstName = r.ReservedBy.FirstName,
-                            Id = r.ReservedById,
-                            ImageDto = null,
-                            LastName = r.ReservedBy.LastName,
-                            PhoneNumber = r.ReservedBy.PhoneNumber,
-                        }
+                        User = _mapper.Map<DtoNameLastnameId>(r.ReservedBy)
                     })
                     .ToList()
             })
