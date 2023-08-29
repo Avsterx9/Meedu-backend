@@ -2,6 +2,7 @@
 using Meedu.Entities;
 using Meedu.Models;
 using Meedu.Models.Reservations.UserReservations;
+using Meedu.Queries.GetUserStudents;
 using Microsoft.EntityFrameworkCore;
 
 namespace Meedu.Services;
@@ -44,29 +45,43 @@ public class DashboardService : IDashboardService
             .ToList();
     }
 
-    public async Task<List<UserReservationDataDto>> GetUsersLessonsReservationsAsync()
+    public async Task<IReadOnlyList<UserReservationDataDto>> GetUsersLessonsReservationsAsync()
     {
-        //var userId = _userContextService.GetUserId;
+        var userId = _userContextService.GetUserId;
 
-        //var todaysLessons = await _dbContext.LessonReservations
-        //    .Include(x => x.ReservedBy)
-        //    .Include(x => x.ScheduleTimespan)
-        //    .ThenInclude(x => x.DaySchedule)
-        //    .ThenInclude(x => x.PrivateLessonOffer)
-        //    .ThenInclude(x => x.CreatedBy)
-        //    .Where(x => x.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy.Id == userId
-        //        && x.ReservationDate == DateTime.Today)
-        //    .ToListAsync();
+        var todaysLessons = await _dbContext.LessonReservations
+            .Include(x => x.ReservedBy)
+            .Include(x => x.ScheduleTimespan)
+            .ThenInclude(x => x.DaySchedule)
+            .Include(x => x.PrivateLessonOffer)
+            .ThenInclude(x => x.CreatedBy)
+            .Where(x => x.PrivateLessonOffer.CreatedById == userId
+                && x.ReservationDate == DateTime.Today)
+            .ToListAsync();
 
-        //var reservations = todaysLessons.Select(x => CreateUserReservationDto(x, x.ReservedBy)).ToList();
+        var reservations = todaysLessons
+            .Select(x => new UserReservationDataDto
+            {
+                AvailableFrom = x.ScheduleTimespan.AvailableFrom,
+                AvailableTo = x.ScheduleTimespan.AvailableTo,
+                isOnline = x.PrivateLessonOffer.IsRemote,
+                LessonId = x.PrivateLessonOfferId,
+                LessonTitle = x.PrivateLessonOffer.LessonTitle,
+                Place = x.PrivateLessonOffer.Place,
+                ReservationId = x.Id,
+                ScheduleId = x.ScheduleTimespan.DayScheduleId,
+                TimespanId = x.ScheduleTimespanId,
+                User = _mapper.Map<DtoNameLastnameId>(x.ReservedBy)
+            })
+            .ToList();
 
-        //reservations
-        //    .Sort((x, y) => Int32.Parse(x.AvailableFrom.Split(":")[0]));
-        //return reservations;
-        return new List<UserReservationDataDto>();
+        reservations
+            .Sort((x, y) => Int32.Parse(x.AvailableFrom.Split(":")[0]));
+
+        return reservations;
     }
 
-    public async Task<List<DtoNameLastnameId>> GetUserStudentsAsync(int amount)
+    public async Task<IReadOnlyList<DtoNameLastnameId>> GetUserStudentsAsync(GetUserStudentsQuery query)
     {
         var userId = _userContextService.GetUserId;
 
@@ -74,13 +89,14 @@ public class DashboardService : IDashboardService
             .Include(x => x.ReservedBy)
             .Include(x => x.ScheduleTimespan)
             .ThenInclude(x => x.DaySchedule)
-            //.ThenInclude(x => x.PrivateLessonOffer)
-            //.ThenInclude(x => x.CreatedBy)
-            //.Where(x => x.ScheduleTimespan.DaySchedule.PrivateLessonOffer.CreatedBy.Id == userId)
+            .Include(x => x.PrivateLessonOffer)
+            .ThenInclude(x => x.CreatedBy)
+            .Where(x => x.PrivateLessonOffer.CreatedById == userId)
             .ToListAsync();
 
-        var userList = reservations.Select(x => x.ReservedBy)
-            .Take(amount)
+        var userList = reservations
+            .Select(x => x.ReservedBy)
+            .Take(query.Amount)
             .Distinct();
 
         return userList.Select(x => new DtoNameLastnameId

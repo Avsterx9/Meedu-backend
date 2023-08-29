@@ -1,5 +1,10 @@
-﻿using Meedu.Models;
+﻿using MediatR;
+using Meedu.Models;
 using Meedu.Models.Reservations.UserReservations;
+using Meedu.Queries.GetReservationsByTimestamp;
+using Meedu.Queries.GetTodaysLessons;
+using Meedu.Queries.GetUsersLessonsReservations;
+using Meedu.Queries.GetUserStudents;
 using Meedu.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,31 +15,32 @@ namespace Meedu.Controllers;
 [ApiController]
 public class DashboardController : ControllerBase
 {
-    private readonly IDashboardService _dashboardService;
+    private readonly ISender _sender;
 
-    public DashboardController(IDashboardService dashboardService)
+    public DashboardController(ISender sender)
     {
-        _dashboardService = dashboardService;
+        _sender = sender;
     }
 
     [HttpGet("getTodaysUserLessons")]
     [Authorize]
     public async Task<ActionResult<IReadOnlyList<UserReservationDataDto>>> GetTodaysUserLessons()
     {
-        return Ok(await _dashboardService.GetTodaysUserLessonsAsync());
+        return Ok(await _sender.Send(new GetTodaysLessonsQuery()));
     }
 
     [HttpGet("getTodayUsersLessonsReservations")]
     [Authorize]
     public async Task<ActionResult<IReadOnlyList<UserReservationDataDto>>> GetTodayUsersLessonsReservationsAsync()
     {
-        return Ok(await _dashboardService.GetUsersLessonsReservationsAsync());
+        return Ok(await _sender.Send(new GetUsersLessonsReservationsQuery()));
     }
 
     [HttpGet("getUserStudents")]
     [Authorize]
-    public async Task<ActionResult<IReadOnlyList<DtoNameLastnameId>>> GetUserStudentsAsync(int amount)
+    public async Task<ActionResult<IReadOnlyList<DtoNameLastnameId>>> GetUserStudentsAsync(
+        [FromQuery] GetUserStudentsQuery query)
     {
-        return Ok(await _dashboardService.GetUserStudentsAsync(amount));
+        return Ok(await _sender.Send(query));
     }
 }
