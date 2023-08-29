@@ -13,11 +13,8 @@ using Meedu.Queries.GetReservationsByTimestamp;
 using Meedu.Queries.GetReservationsByUser;
 using Meedu.Queries.GetReservationsForUsersLessons;
 using Meedu.Queries.GetScheduleByUser;
-using Meedu.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Meedu.Controllers;
 
@@ -25,12 +22,10 @@ namespace Meedu.Controllers;
 [ApiController]
 public class ScheduleController : ControllerBase
 {
-    private readonly IScheduleService _scheduleService;
     private readonly ISender _sender;
 
-    public ScheduleController(IScheduleService scheduleService, ISender sender)
+    public ScheduleController(ISender sender)
     {
-        _scheduleService = scheduleService;
         _sender = sender;
     }
 
