@@ -38,19 +38,10 @@ public class DashboardService : IDashboardService
             .Where(x => x.ReservationDate == DateTime.Today && x.ReservedBy.Id == userId)
             .ToListAsync();
 
-        //return todaysLessons
-        //    .Select(x => _mapper.Map<UserReservationDataDto>(x))
-        //    .OrderBy(x => Int32.Parse(x.AvailableFrom.Split(":")[0]))
-        //    .ToList();
-
-        //var reservations = todaysLessons
-        //    .Select(x => _mapper.Map<UserReservationDataDto>(x))
-        //    .ToList();
-
-        //reservations
-        //    .Sort((x, y) => Int32.Parse(x.AvailableFrom.Split(":")[0]));
-        //return reservations;
-        return new List<UserReservationDataDto>();
+        return todaysLessons
+            .Select(x => _mapper.Map<UserReservationDataDto>(x))
+            .OrderBy(x => Int32.Parse(x.AvailableFrom.Split(":")[0]))
+            .ToList();
     }
 
     public async Task<List<UserReservationDataDto>> GetUsersLessonsReservationsAsync()
